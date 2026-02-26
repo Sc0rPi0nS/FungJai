@@ -47,7 +47,7 @@ public class Main extends Application {
 
         // ===== Overlay =====
         Pane overlay = new Pane();
-        overlay.setPrefSize(600, 450);
+        overlay.setPrefSize(450, 450);
         overlay.setStyle("-fx-background-color: rgba(0,0,0,0.65);");
         
         // ===== Song Title (Scrolling) =====
@@ -177,7 +177,7 @@ progress.valueChangingProperty().addListener((obs, wasChanging, changing) -> {
         overlay.getChildren().add(menuBar);
         root.getChildren().addAll(bgView, bgPlayView, overlay);
 
-        Scene scene = new Scene(root, 500, 450);
+        Scene scene = new Scene(root, 450, 450);
         scene.getStylesheets().add("file:/C:/Users/iamni/OneDrive/Documents/NetBeansProjects/FungJai/src/style.css");
         stage.setTitle("FungJai");
         stage.setScene(scene);
