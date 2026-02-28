@@ -14,6 +14,9 @@ import java.io.*;
 import javafx.scene.text.*;
 import javafx.scene.shape.*;
 import javafx.animation.*;
+import java.net.URL;
+
+
 
 
 public class Main extends Application {
@@ -25,9 +28,10 @@ public class Main extends Application {
         Pane root = new Pane();
         root.setPrefSize(450, 450);
         
-        stage.getIcons().add(new Image("file:C:/Users/iamni/OneDrive/Documents/NetBeansProjects/FungJaiZ/pictures/icon1.png"));
+        Image icon = new Image(Main.class.getResource("/pictures/icon1.png").toExternalForm());
+        stage.getIcons().add(icon);
 
-        Media videoMedia = new Media("file:///C:/Users/iamni/OneDrive/Documents/NetBeansProjects/FungJaiZ/pictures/nineza12.mp4");
+        Media videoMedia = new Media(Main.class.getResource("/pictures/nineza123.mp4").toExternalForm());
         videoPlayer = new MediaPlayer(videoMedia);
         videoPlayer.setMute(true);
         videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
@@ -48,7 +52,8 @@ public class Main extends Application {
         videoView.setTranslateY(-225);
         
         // music player ====
-        Media media = new Media("file:///C:/Users/iamni/OneDrive/Documents/NetBeansProjects/FungJaiZ/song/song1.mp3");
+        URL url = Main.class.getResource("/song/song1.mp3");
+        Media media = new Media(url.toExternalForm());
         mediaPlayer = new MediaPlayer(media);
 
 
@@ -185,7 +190,6 @@ progress.valueChangingProperty().addListener((obs, wasChanging, changing) -> {
         root.getChildren().addAll(videoView, overlay);
 
         Scene scene = new Scene(root, 450, 450);
-        scene.getStylesheets().add("file:/C:/Users/iamni/OneDrive/Documents/NetBeansProjects/FungJai/src/style.css");
         stage.setTitle("FungJai");
         stage.setScene(scene);
         stage.setResizable(false);
