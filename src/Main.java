@@ -16,7 +16,7 @@ import javafx.scene.shape.*;
 import javafx.animation.*;
 import java.net.URL;
 
-//GU CHOP HEE
+//GU CHOP HEE KOW KOW //
 
 
 public class Main extends Application {
@@ -63,7 +63,7 @@ public class Main extends Application {
         overlay.setStyle("-fx-background-color: rgba(0,0,0,0.65);");
         
         // ===== Song Title (Scrolling) =====
-        Text songTitle = new Text("Oh mama");
+        Text songTitle = new Text("ใครอ่านเป็นเกย์");
         songTitle.setStyle("-fx-fill: white; -fx-font-size: 25px; -fx-font-weight: bold; -fx-font-family: 'THSarabunNew';");
         songTitle.setLayoutX(0);
         songTitle.setLayoutY(40);
