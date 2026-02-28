@@ -58,7 +58,7 @@ public class Main extends Application {
         overlay.setStyle("-fx-background-color: rgba(0,0,0,0.65);");
         
         // ===== Song Title (Scrolling) =====
-        Text songTitle = new Text("TATTOO COLOUR - ขอให้เราทั้งคู่โชคดี เพลงโคตรดีไอสัส");
+        Text songTitle = new Text("TATTOO COLOUR New Song - ขอให้เราทั้งคู่โชคดี เพลงโคตรดีไอสัส");
         songTitle.setStyle("-fx-fill: white; -fx-font-size: 25px; -fx-font-weight: bold; -fx-font-family: 'THSarabunNew';");
         songTitle.setLayoutX(0);
         songTitle.setLayoutY(40);
