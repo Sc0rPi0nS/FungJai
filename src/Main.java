@@ -17,6 +17,7 @@ import javafx.animation.*;
 import java.net.URL;
 
 //GU CHOP HEE KOW KOW //
+//can
 
 
 public class Main extends Application {
