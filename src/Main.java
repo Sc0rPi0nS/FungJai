@@ -18,7 +18,7 @@ import java.net.URL;
 
 //GU CHOP HEE KOW KOW //
 //can yea yeen
-//can yed hod sus
+//can yed hod
 
 
 public class Main extends Application {
