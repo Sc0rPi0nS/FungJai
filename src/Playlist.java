@@ -21,8 +21,9 @@ public class Playlist {
         songs.add(song);
     }
 
-    public void removeSong(Song song) {
-        songs.remove(song);
+    public boolean removeSong(UUID songId) {
+        Objects.requireNonNull(songId, "songId must not be null");
+        return songs.removeIf(s -> s.getId().equals(songId));
     }
 
     public void moveSong(int from, int to) {
