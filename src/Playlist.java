@@ -38,4 +38,16 @@ public class Playlist {
     public List<Song> getSongs() {
         return songs;
     }
+    
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
 }
