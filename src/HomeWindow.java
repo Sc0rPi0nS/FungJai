@@ -13,7 +13,6 @@ import javafx.scene.shape.*;
 import javafx.animation.*;
 import java.net.URL;
 import javafx.scene.web.*;
-
 public class HomeWindow {
 
     private MediaPlayer mediaPlayer;
@@ -29,6 +28,7 @@ public void show(Stage stage) {
     Button home = menuBtn("HOME");
     Button mySong = menuBtn("MYSONG");
     Button playlist = menuBtn("MYPLAYLIST");
+    playlist.setOnAction(e -> new PlaylistWindow().show(stage));
     Button mix = menuBtn("MIXFORYOU");
 
     HBox menuBar = new HBox(15, home, mySong, playlist, mix);
