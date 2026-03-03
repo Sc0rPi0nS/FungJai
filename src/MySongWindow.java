@@ -6,25 +6,22 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-import java.util.List;
 import java.util.UUID;
 
 public class MySongWindow extends Application {
 
-    private LibraryService libraryService;   // ใช้ของจริง
+    private LibraryService libraryService;
 
     private TableView<SongRow> table;
     private ObservableList<SongRow> tableData;
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage stage) {
 
-        libraryService = new LibraryService(); // เพื่อน implement
+        libraryService = new LibraryService();
 
         tableData = FXCollections.observableArrayList();
-
-        table = new TableView<>();
-        table.setItems(tableData);
+        table = new TableView<>(tableData);
 
         // ===== Columns =====
         TableColumn<SongRow, String> titleCol = new TableColumn<>("Title");
@@ -40,29 +37,18 @@ public class MySongWindow extends Application {
         Button editBtn = new Button("Edit");
         Button deleteBtn = new Button("Delete");
 
-        addBtn.setOnAction(e -> onAddSongClicked());
-        editBtn.setOnAction(e -> {
-            SongRow selected = table.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                onEditSongSelected(selected.getId());
-            }
-        });
-
-        deleteBtn.setOnAction(e -> {
-            SongRow selected = table.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                onDeleteSongSelected(selected.getId());
-            }
-        });
+        addBtn.setOnAction(e -> onAddSong());
+        editBtn.setOnAction(e -> onEditSong());
+        deleteBtn.setOnAction(e -> onDeleteSong());
 
         HBox buttons = new HBox(10, addBtn, editBtn, deleteBtn);
-        VBox layout = new VBox(10, table, buttons);
+        VBox root = new VBox(10, table, buttons);
 
-        primaryStage.setScene(new Scene(layout, 600, 400));
-        primaryStage.setTitle("MySong");
-        primaryStage.show();
+        stage.setScene(new Scene(root, 600, 400));
+        stage.setTitle("MySong");
+        stage.show();
 
-        refreshTable(); // โหลดข้อมูลตอนเปิด
+        refreshTable();
     }
 
     // ===============================
@@ -72,9 +58,7 @@ public class MySongWindow extends Application {
     private void refreshTable() {
         tableData.clear();
 
-        List<Song> songs = libraryService.getAllSongs();
-
-        for (Song song : songs) {
+        for (Song song : libraryService.getAllSongs()) {
             tableData.add(new SongRow(
                     song.getId(),
                     song.getTitle(),
@@ -83,18 +67,42 @@ public class MySongWindow extends Application {
         }
     }
 
-    public void onAddSongClicked() {
-        libraryService.addSong("New Song", "Unknown");
+    private void onAddSong() {
+
+        // ตัวอย่างง่าย ๆ (ปกติควรมี dialog รับข้อมูล)
+        libraryService.importMp4(
+                "C:/music/test.mp4",
+                "New Song",
+                "Unknown Artist",
+                180
+        );
+
         refreshTable();
     }
 
-    public void onEditSongSelected(UUID songID) {
-        libraryService.editSong(songID, "Edited Title", "Edited Artist");
+    private void onEditSong() {
+
+        SongRow selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) return;
+
+        UUID id = selected.getId();
+
+        libraryService.editSong(
+                id,
+                "Edited Title",
+                "Edited Artist"
+        );
+
         refreshTable();
     }
 
-    public void onDeleteSongSelected(UUID songID) {
-        libraryService.deleteSong(songID);
+    private void onDeleteSong() {
+
+        SongRow selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) return;
+
+        libraryService.deleteSong(selected.getId());
+
         refreshTable();
     }
 
