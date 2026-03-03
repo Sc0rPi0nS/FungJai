@@ -4,13 +4,13 @@ import javafx.collections.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
-import javafx.scene.paint.*;
-import javafx.scene.shape.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.text.*;
 import javafx.stage.*;
-//
+
 public class PlaylistWindow extends Application {
 
     private final ObservableList<PlaylistItem> playlists = FXCollections.observableArrayList();
@@ -229,7 +229,10 @@ public class PlaylistWindow extends Application {
         c.setCellValueFactory(new PropertyValueFactory<>(prop)); c.setMinWidth(60 * w); return c;
     }
 
-    private void alert(String msg) { new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK) {{ setHeaderText(null); }}.showAndWait(); }
+    private void alert(String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
+        a.setHeaderText(null); a.showAndWait();
+    }
 
     // ── Data Models ───────────────────────────────────────────
 
@@ -256,5 +259,22 @@ public class PlaylistWindow extends Application {
         public StringProperty dateAddedProperty()  { return dateAdded; }
         public String getDuration()               { return duration.get(); }
         public StringProperty durationProperty()  { return duration; }
+    }
+
+    // ── เรียกจาก HomeWindow (MDI) ─────────────────────────────
+    public void show(Stage owner) {
+        playlists.clear();
+        playlists.addAll(
+            new PlaylistItem("My Favorites", "Songs I love"),
+            new PlaylistItem("Chill Vibes",  "Relaxing music"),
+            new PlaylistItem("Workout Mix",  "High energy")
+        );
+        Stage stage = new Stage();
+        stage.initOwner(owner);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle("Playlist");
+        stage.setResizable(false);
+        stage.setScene(new Scene(buildMainPane(stage), 420, 260));
+        stage.show();
     }
 }
