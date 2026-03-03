@@ -10,7 +10,7 @@ import javafx.scene.paint.*;
 import javafx.scene.shape.*;
 import javafx.scene.text.*;
 import javafx.stage.*;
-
+//
 public class PlaylistWindow extends Application {
 
     private final ObservableList<PlaylistItem> playlists = FXCollections.observableArrayList();
