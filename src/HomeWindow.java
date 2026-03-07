@@ -1,4 +1,3 @@
-
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -16,9 +15,15 @@ public class HomeWindow {
     private Song currentSong;
 
     private LibraryService libraryService;
+
     private Label song;
     private Label artist;
+    private Label time;
+
     private HBox eqBars;
+
+    private Slider progress;
+    private Slider volume;
 
     public void show(Stage stage) {
 
@@ -36,9 +41,9 @@ public class HomeWindow {
         Button home = menuBtn("HOME");
 
         Button mySong = menuBtn("MYSONG");
-mySong.setOnAction(e -> 
-    new MySongWindow(this, libraryService).show(stage)
-);
+        mySong.setOnAction(e ->
+                new MySongWindow(this, libraryService).show(stage)
+        );
 
         Button playlist = menuBtn("MYPLAYLIST");
         playlist.setOnAction(e -> new PlaylistWindow().show(stage));
@@ -46,63 +51,53 @@ mySong.setOnAction(e ->
         Button mix = menuBtn("MIXFORYOU");
 
         HBox menuBar = new HBox(15, home, mySong, playlist, mix);
-        menuBar.setPrefWidth(420);
-        menuBar.setMaxWidth(420);
         menuBar.setAlignment(Pos.CENTER);
         menuBar.setPadding(new Insets(4));
         menuBar.setStyle(
                 "-fx-background-color: #eeeeee;"
                 + "-fx-border-color: #cccccc;"
-                + "-fx-border-width: 1;"
         );
 
-        VBox top = new VBox(menuBar);
-        top.setAlignment(Pos.CENTER);
-        root.setTop(top);
+        root.setTop(menuBar);
 
         // ================= CENTER =================
         URL videoUrl = getClass().getResource("/pictures/nineza123.mp4");
-
-        if (videoUrl == null) {
-            throw new RuntimeException("ไม่พบไฟล์ nineza123.mp4");
-        }
 
         Media media = new Media(videoUrl.toExternalForm());
         videoPlayer = new MediaPlayer(media);
         videoPlayer.setMute(true);
         videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-        videoPlayer.pause();
 
         MediaView videoView = new MediaView(videoPlayer);
         videoView.setFitWidth(370);
         videoView.setFitHeight(200);
-        videoView.setPreserveRatio(false);
 
         Rectangle clip = new Rectangle(370, 200);
         clip.setArcWidth(10);
         clip.setArcHeight(10);
         videoView.setClip(clip);
 
-        videoPlayer.setOnReady(() -> {
-            videoView.setViewport(new Rectangle2D(200, 100, 1500, 900));
-        });
+        videoPlayer.setOnReady(() ->
+                videoView.setViewport(new Rectangle2D(200, 100, 1500, 900))
+        );
 
         song = new Label("Song Title");
         artist = new Label("Artist");
 
-        song.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-        artist.setStyle("-fx-text-fill: gray;");
+        song.setStyle("-fx-font-size:14px;-fx-font-weight:bold;");
+        artist.setStyle("-fx-text-fill:gray;");
 
         HBox songLine = new HBox(6, song, new Label("–"), artist);
         songLine.setAlignment(Pos.CENTER);
 
-        // ===== EQ Bars =====
         eqBars = new HBox(2);
         eqBars.setAlignment(Pos.CENTER);
 
         for (int i = 0; i < 32; i++) {
+
             Rectangle bar = new Rectangle(8, 15);
             bar.setFill(javafx.scene.paint.Color.GREY);
+
             eqBars.getChildren().add(bar);
         }
 
@@ -115,42 +110,31 @@ mySong.setOnAction(e ->
         // ================= BOTTOM =================
         Button lyrics = new Button("Lyrics");
         Button prev = new Button("⏮");
-
         Button play = new Button("▶");
-
-        play.setOnAction(e -> {
-
-            playerService.togglePlayPause();
-
-            if (playerService.isPlaying()) {
-                play.setText("⏸");
-                videoPlayer.play();
-            } else {
-                play.setText("▶");
-                videoPlayer.pause();
-            }
-        });
-
         Button next = new Button("⏭");
         Button shuffle = new Button("🔀");
         Button replay = new Button("🔁");
 
-        Slider volume = new Slider(0, 1, 0.7);
+        volume = new Slider(0, 1, 0.7);
         volume.setPrefWidth(80);
 
-        videoPlayer.volumeProperty().bind(volume.valueProperty());
+        volume.valueProperty().addListener((obs, oldVal, newVal) -> {
 
-        // ===== Left =====
+            MediaPlayer player = playerService.getMediaPlayer();
+
+            if (player != null) {
+                player.setVolume(newVal.doubleValue());
+            }
+
+        });
+
         HBox leftControls = new HBox(3, lyrics, shuffle, prev);
         leftControls.setAlignment(Pos.CENTER_RIGHT);
         leftControls.setPrefWidth(200);
 
-        // ===== Center =====
         StackPane centerControls = new StackPane(play);
         centerControls.setAlignment(Pos.CENTER);
-        centerControls.setPrefWidth(40);
 
-        // ===== Right =====
         HBox rightControls = new HBox(3, next, replay, new Label("🔊"), volume);
         rightControls.setAlignment(Pos.CENTER_LEFT);
         rightControls.setPrefWidth(200);
@@ -159,12 +143,23 @@ mySong.setOnAction(e ->
         controlBar.setLeft(leftControls);
         controlBar.setCenter(centerControls);
         controlBar.setRight(rightControls);
-        controlBar.setPadding(new Insets(3));
 
-        Slider progress = new Slider();
+        progress = new Slider();
         progress.setPrefWidth(350);
 
-        Label time = new Label("00:00");
+        progress.valueProperty().addListener((obs, oldVal, newVal) -> {
+
+            MediaPlayer player = playerService.getMediaPlayer();
+
+            if (player != null && progress.isValueChanging()) {
+
+                player.seek(
+                        javafx.util.Duration.seconds(newVal.doubleValue())
+                );
+            }
+        });
+
+        time = new Label("00:00");
 
         HBox progressBar = new HBox(10, time, progress);
         progressBar.setAlignment(Pos.CENTER);
@@ -174,16 +169,90 @@ mySong.setOnAction(e ->
 
         root.setBottom(bottom);
 
+        // ================= BUTTON EVENTS =================
+
+        play.setOnAction(e -> {
+
+            if (playerService.getCurrentSong() == null) return;
+
+            playerService.togglePlayPause();
+
+            if (playerService.isPlaying()) {
+
+                play.setText("⏸");
+                videoPlayer.play();
+
+            } else {
+
+                play.setText("▶");
+                videoPlayer.pause();
+            }
+        });
+
+        next.setOnAction(e -> {
+
+            Song song = playerService.next();
+
+            if (song != null) {
+                setSongInfo(song);
+            }
+        });
+
+        prev.setOnAction(e -> {
+
+            Song song = playerService.previous();
+
+            if (song != null) {
+                setSongInfo(song);
+            }
+        });
+
+        shuffle.setOnAction(e -> {
+
+            playerService.toggleShuffle();
+
+            if (playerService.isShuffling())
+                shuffle.setStyle("-fx-text-fill:green;");
+            else
+                shuffle.setStyle("");
+        });
+
+        replay.setOnAction(e -> {
+
+            playerService.toggleLoop();
+
+            if (playerService.isLooping())
+                replay.setStyle("-fx-text-fill:green;");
+            else
+                replay.setStyle("");
+        });
+
+        lyrics.setOnAction(e -> {
+
+            Song current = playerService.getCurrentSong();
+
+            if (current != null) {
+
+                String url =
+                        "https://www.musixmatch.com/lyrics/"
+                        + current.getArtist()
+                        + "/"
+                        + current.getTitle();
+
+                try {
+                    java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
         // ================= SCENE =================
         Scene scene = new Scene(root);
 
         stage.setScene(scene);
         stage.setTitle("FungJai");
         stage.setResizable(false);
-        stage.setMinWidth(500);
-        stage.setMinHeight(450);
-        stage.setMaxWidth(500);
-        stage.setMaxHeight(450);
         stage.show();
     }
 
@@ -196,29 +265,9 @@ mySong.setOnAction(e ->
         b.setPrefHeight(32);
 
         b.setStyle(
-                "-fx-background-color: transparent;"
-                + "-fx-border-color: transparent;"
-                + "-fx-font-weight: bold;"
-                + "-fx-text-fill: #444444;"
-                + "-fx-cursor: hand;"
-        );
-
-        b.setOnMouseEntered(e
-                -> b.setStyle(
-                        "-fx-background-color: rgba(0,0,0,0.08);"
-                        + "-fx-border-color: transparent;"
-                        + "-fx-font-weight: bold;"
-                        + "-fx-text-fill: black;"
-                )
-        );
-
-        b.setOnMouseExited(e
-                -> b.setStyle(
-                        "-fx-background-color: transparent;"
-                        + "-fx-border-color: transparent;"
-                        + "-fx-font-weight: bold;"
-                        + "-fx-text-fill: #444444;"
-                )
+                "-fx-background-color:transparent;"
+                + "-fx-font-weight:bold;"
+                + "-fx-text-fill:#444;"
         );
 
         return b;
@@ -230,14 +279,13 @@ mySong.setOnAction(e ->
         player.setAudioSpectrumInterval(0.05);
         player.setAudioSpectrumNumBands(32);
 
-        player.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
+        player.setAudioSpectrumListener((t, d, mag, ph) -> {
 
-            for (int i = 0; i < magnitudes.length; i++) {
+            for (int i = 0; i < mag.length; i++) {
 
                 Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
 
-                double value = magnitudes[i] + 60;
-
+                double value = mag[i] + 60;
                 double height = Math.max(5, value * 2);
 
                 bar.setScaleY(height / 20.0);
@@ -248,9 +296,7 @@ mySong.setOnAction(e ->
     // ================= SET SONG =================
     public void setSongInfo(Song song) {
 
-        if (song == null) {
-            return;
-        }
+        if (song == null) return;
 
         this.currentSong = song;
 
@@ -262,7 +308,41 @@ mySong.setOnAction(e ->
         MediaPlayer player = playerService.getMediaPlayer();
 
         if (player != null) {
+
+            player.setVolume(volume.getValue());
+
             setupSpectrum(player);
+
+            player.setOnReady(() ->
+                    progress.setMax(
+                            player.getTotalDuration().toSeconds()
+                    )
+            );
+
+            player.currentTimeProperty().addListener((obs, oldT, newT) -> {
+
+                if (!progress.isValueChanging()) {
+
+                    progress.setValue(newT.toSeconds());
+                }
+
+                int min = (int) newT.toSeconds() / 60;
+                int sec = (int) newT.toSeconds() % 60;
+
+                time.setText(
+                        String.format("%02d:%02d", min, sec)
+                );
+            });
+
+            // ⭐ auto next
+            player.setOnEndOfMedia(() -> {
+
+                Song nextSong = playerService.next();
+
+                if (nextSong != null) {
+                    setSongInfo(nextSong);
+                }
+            });
         }
     }
 }

@@ -1,7 +1,7 @@
 
 import java.util.List;
-import java.util.Random;
 import javafx.scene.media.MediaPlayer;
+import java.util.Collections;
 
 public class PlayerService {
 
@@ -9,7 +9,10 @@ public class PlayerService {
     private boolean shuffling;
 
     private Playlist currentQueue;
+    private Song currentSong;
     private int currentIndex = -1;
+    private List<Integer> shuffleOrder;
+    private int shuffleIndex = 0;
 
     private boolean isPlaying = false;
 
@@ -25,22 +28,33 @@ public class PlayerService {
         return isPlaying;
     }
 
-    public void playSong(Song song) {
-        System.out.println(song.getFilePathMp3());
-        if (song == null || currentQueue == null) {
-            return;
-        }
+public void playSong(Song song) {
 
-        currentIndex = currentQueue.getSongs().indexOf(song);
+    if (song == null || currentQueue == null) return;
 
-        if (currentIndex == -1) {
-            currentQueue.addSong(song);
-            currentIndex = currentQueue.getSongs().size() - 1;
-        }
-
-        song.play();      // ⭐ เพิ่มบรรทัดนี้
-        isPlaying = true;
+    if (currentSong != null) {
+        currentSong.stop();
     }
+
+    currentIndex = currentQueue.getSongs().indexOf(song);
+
+    if (currentIndex == -1) {
+        currentQueue.addSong(song);
+        currentIndex = currentQueue.getSongs().size() - 1;
+    }
+
+    // ⭐ sync shuffleIndex
+    if (shuffling && shuffleOrder != null) {
+        shuffleIndex = shuffleOrder.indexOf(currentIndex);
+    }
+
+    currentSong = song;
+
+    song.getMediaPlayer().seek(javafx.util.Duration.ZERO);
+    song.play();
+
+    isPlaying = true;
+}
 
     public void togglePlayPause() {
 
@@ -52,49 +66,119 @@ public class PlayerService {
 
         if (player.getStatus() == MediaPlayer.Status.PLAYING) {
             player.pause();
+            isPlaying = false;
         } else {
             player.play();
+            isPlaying = true;
         }
     }
 
-    public void next() {
+public void toggleShuffle() {
 
-        List<Song> songs = currentQueue.getSongs();
+    shuffling = !shuffling;
 
-        if (songs.isEmpty()) {
-            return;
+    if (currentQueue == null) return;
+
+    List<Song> songs = currentQueue.getSongs();
+
+    if (shuffling) {
+
+        shuffleOrder = new java.util.ArrayList<>();
+
+        for (int i = 0; i < songs.size(); i++) {
+            shuffleOrder.add(i);
         }
 
-        if (shuffling) {
+        Collections.shuffle(shuffleOrder, new java.util.Random());
 
-            Random rand = new Random();
-            currentIndex = rand.nextInt(songs.size());
+        // ให้เพลงปัจจุบันอยู่ตำแหน่งแรก
+        Song current = getCurrentSong();
+        if (current != null) {
 
-        } else {
+            int currentIdx = songs.indexOf(current);
 
-            currentIndex++;
+            shuffleOrder.remove((Integer) currentIdx);
+            shuffleOrder.add(0, currentIdx);
 
-            if (currentIndex >= songs.size()) {
+            shuffleIndex = 0;
+        }
 
-                if (looping) {
-                    currentIndex = 0;
-                } else {
-                    currentIndex = songs.size() - 1;
-                    return;
+    } else {
+        shuffleOrder = null;
+    }
+}
+
+public Song next() {
+
+    List<Song> songs = currentQueue.getSongs();
+    if (songs.isEmpty()) return null;
+
+    if (shuffling) {
+
+        shuffleIndex++;
+
+        if (shuffleIndex >= shuffleOrder.size()) {
+
+            if (looping) {
+
+                int lastPlayed = currentIndex;
+
+                Collections.shuffle(shuffleOrder);
+
+                if (shuffleOrder.get(0) == lastPlayed && shuffleOrder.size() > 1) {
+                    Collections.swap(shuffleOrder, 0, 1);
                 }
+
+                shuffleIndex = 0;
+
+            } else {
+                return null;
             }
         }
 
-        playCurrent();
+        currentIndex = shuffleOrder.get(shuffleIndex);
+
+    } else {
+
+        currentIndex++;
+
+        if (currentIndex >= songs.size()) {
+
+            if (looping) {
+                currentIndex = 0;
+            } else {
+                return null;
+            }
+        }
     }
 
-    public void previous() {
+    playCurrent();
+    return getCurrentSong();
+}
 
-        List<Song> songs = currentQueue.getSongs();
+public Song previous() {
 
-        if (songs.isEmpty()) {
-            return;
+    List<Song> songs = currentQueue.getSongs();
+
+    if (songs.isEmpty()) return null;
+
+    if (shuffling) {
+
+        shuffleIndex--;
+
+        if (shuffleIndex < 0) {
+
+            if (looping) {
+                shuffleIndex = shuffleOrder.size() - 1;
+            } else {
+                shuffleIndex = 0;
+                return getCurrentSong();
+            }
         }
+
+        currentIndex = shuffleOrder.get(shuffleIndex);
+
+    } else {
 
         currentIndex--;
 
@@ -104,19 +188,23 @@ public class PlayerService {
                 currentIndex = songs.size() - 1;
             } else {
                 currentIndex = 0;
-                return;
+                return getCurrentSong();
             }
         }
-
-        playCurrent();
     }
 
+    playCurrent();
+    return getCurrentSong();
+}
+
+    public boolean isShuffling(){
+        return shuffling;
+    }
+            public boolean isLooping(){
+        return looping;
+            }
     public void toggleLoop() {
         looping = !looping;
-    }
-
-    public void toggleShuffle() {
-        shuffling = !shuffling;
     }
 
     public Song getCurrentSong() {
@@ -147,10 +235,21 @@ public class PlayerService {
 
     private void playCurrent() {
 
+        // ⭐ หยุดเพลงเก่าก่อน
+        if (currentSong != null) {
+            currentSong.stop();
+        }
+
         Song current = getCurrentSong();
 
         if (current != null) {
+
+            currentSong = current;
+
+            current.getMediaPlayer().seek(javafx.util.Duration.ZERO);
+
             current.play();
+
             isPlaying = true;
         }
     }
