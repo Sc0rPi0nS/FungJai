@@ -1,258 +1,336 @@
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.geometry.*;
-import javafx.scene.*;
-import javafx.scene.control.*;
-import javafx.scene.image.*;
-import javafx.scene.layout.*;
-import javafx.stage.*;
-import javafx.scene.media.*;
-import javafx.util.Duration;
-import javafx.scene.text.*;
-import javafx.scene.shape.*;
-import javafx.animation.*;
+import javafx.animation.Animation;
+import javafx.beans.InvalidationListener;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+
 import java.net.URL;
-import javafx.scene.web.*;
+
 public class HomeWindow {
 
-    private MediaPlayer mediaPlayer;
     private MediaPlayer videoPlayer;
+    private final PlayerService playerService = PlaylistWindow.getPlayerService();
 
-public void show(Stage stage) {
+    private Label song;
+    private Label artist;
+    private Label time;
+    private Label totalTime;
+    private Button play;
+    private Slider progress;
+    private Slider volume;
+    private HBox eqBars;
 
-    BorderPane root = new BorderPane();
-    root.setPrefSize(500, 450);
-    root.setStyle("-fx-background-color: #f5f5f5;");
+    private boolean userDraggingProgress = false;
+    private MediaPlayer boundPlayer;
+    private InvalidationListener currentTimeListener;
 
-    // ================= TOP =================
-    Button home = menuBtn("HOME");
-    Button mySong = menuBtn("MYSONG");
-    Button playlist = menuBtn("MYPLAYLIST");
-    playlist.setOnAction(e -> new PlaylistWindow().show(stage));
-    Button mix = menuBtn("MIXFORYOU");
+    public void show(Stage stage) {
+        PlaylistWindow.ensureDefaults();
 
-    HBox menuBar = new HBox(15, home, mySong, playlist, mix);
-    menuBar.setPrefWidth(420);
-    menuBar.setMaxWidth(420);
-    menuBar.setAlignment(Pos.CENTER);
-    menuBar.setPadding(new Insets(4));
-    menuBar.setStyle(
-    "-fx-background-color: #eeeeee;" +
-    "-fx-border-color: #cccccc;" +
-    "-fx-border-width: 1;" +
-    "-fx-border-radius: 0" +
-    "-fx-background-radius: 0"
-);
+        BorderPane root = new BorderPane();
+        root.setPrefSize(500, 450);
+        root.setStyle("-fx-background-color: #f5f5f5;");
 
-    VBox top = new VBox(menuBar);
-    top.setAlignment(Pos.CENTER); 
-    root.setTop(top);
+        Button home = menuBtn("HOME");
+        Button mySong = menuBtn("MYSONG");
+        Button playlist = menuBtn("MYPLAYLIST");
+        playlist.setOnAction(e -> new PlaylistWindow().show(stage));
+        Button mix = menuBtn("MIXFORYOU");
 
-    // ================= CENTER =================
-    // ===== VIDEO (แทน ImageView) =====
-    URL videoUrl = getClass().getResource("/pictures/nineza123.mp4");
-    if (videoUrl == null) {
-        throw new RuntimeException("ไม่พบไฟล์ nineza123.mp4");
-    }
-
-    Media media = new Media(videoUrl.toExternalForm());
-    videoPlayer = new MediaPlayer(media);
-    videoPlayer.setMute(true);
-    videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-    videoPlayer.play();
-    
-    MediaView videoView = new MediaView(videoPlayer);
-
-
-    videoView.setFitWidth(370);
-    videoView.setFitHeight(200);
-    videoView.setPreserveRatio(false);
-
-    /* ===== 2. ครอปไม่ให้ล้น ===== */
-    Rectangle clip = new Rectangle(370, 200);
-    clip.setArcWidth(10);
-    clip.setArcHeight(10);
-    videoView.setClip(clip);
-
-    /* ===== 3. รอ media พร้อมก่อนค่อยซูม ===== */
-    videoPlayer.setOnReady(() -> {
-
-        videoView.setViewport(
-            new Rectangle2D(200, 100, 1500, 900)
+        HBox menuBar = new HBox(15, home, mySong, playlist, mix);
+        menuBar.setPrefWidth(420);
+        menuBar.setMaxWidth(420);
+        menuBar.setAlignment(Pos.CENTER);
+        menuBar.setPadding(new Insets(4));
+        menuBar.setStyle(
+            "-fx-background-color: #eeeeee;" +
+            "-fx-border-color: #cccccc;" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 0" +
+            "-fx-background-radius: 0"
         );
 
+        VBox top = new VBox(menuBar);
+        top.setAlignment(Pos.CENTER);
+        root.setTop(top);
+
+        URL videoUrl = getClass().getResource("/pictures/nineza123.mp4");
+        if (videoUrl == null) {
+            throw new RuntimeException("ไม่พบไฟล์ nineza123.mp4");
+        }
+
+        Media media = new Media(videoUrl.toExternalForm());
+        videoPlayer = new MediaPlayer(media);
+        videoPlayer.setMute(true);
+        videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         videoPlayer.play();
-    });
 
-    Label song = new Label("Song Title");
-    Label artist = new Label("Artist");
+        MediaView videoView = new MediaView(videoPlayer);
+        videoView.setFitWidth(370);
+        videoView.setFitHeight(200);
+        videoView.setPreserveRatio(false);
 
-    song.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-    artist.setStyle("-fx-text-fill: gray;");
+        Rectangle clip = new Rectangle(370, 200);
+        clip.setArcWidth(10);
+        clip.setArcHeight(10);
+        videoView.setClip(clip);
 
-    // รวมให้อยู่บรรทัดเดียว
-    HBox songLine = new HBox(6, song, new Label("–"), artist);
-    songLine.setAlignment(Pos.CENTER);
+        videoPlayer.setOnReady(() -> {
+            videoView.setViewport(new Rectangle2D(200, 100, 1500, 900));
+            videoPlayer.play();
+        });
 
-    URL audioUrl = getClass().getResource("/song/song1.mp3");
-    if (audioUrl == null) {
-        throw new RuntimeException("ไม่พบไฟล์ testsong.mp3");
-    }
-    Media audioMedia = new Media(audioUrl.toExternalForm());
-    mediaPlayer = new MediaPlayer(audioMedia);
-    // สร้าง EQ bar 32 แท่ง
-    HBox eqBars = new HBox(2);
-    eqBars.setAlignment(Pos.CENTER);
-    for (int i = 0; i < 26; i++) {
-        Rectangle bar = new Rectangle(8, 15);
-        bar.setFill(javafx.scene.paint.Color.GREY);
-        eqBars.getChildren().add(bar);
-}
+        song = new Label("Song Title");
+        artist = new Label("Artist");
+        song.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        artist.setStyle("-fx-text-fill: gray;");
 
-    // ตั้งค่า spectrum listener
-    mediaPlayer.setAudioSpectrumInterval(0.05);
-    mediaPlayer.setAudioSpectrumNumBands(32);
+        HBox songLine = new HBox(6, song, new Label("–"), artist);
+        songLine.setAlignment(Pos.CENTER);
 
-    mediaPlayer.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
-        for (int i = 0; i < magnitudes.length; i++) {
-            Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
+        eqBars = new HBox(2);
+        eqBars.setAlignment(Pos.CENTER);
+        for (int i = 0; i < 26; i++) {
+            Rectangle bar = new Rectangle(8, 15);
+            bar.setFill(javafx.scene.paint.Color.GREY);
+            eqBars.getChildren().add(bar);
+        }
 
-            double value = magnitudes[i] + 60; // normalize (-60 ถึง 0 → 0 ถึง 60)
+        VBox center = new VBox(10, videoView, songLine, eqBars);
+        center.setAlignment(Pos.CENTER);
+        center.setPadding(new Insets(10));
+        root.setCenter(center);
 
-            // ถ้าเป็นแท่งตรงกลาง (เช่น index 12–20) ให้ขยายการเคลื่อนไหว
-            if (i > 12 && i < 25) {
-                value *= 2; // ขยาย amplitude
+        Button lyrics = new Button("Lyrics");
+        Button prev = new Button("⏮");
+        play = new Button("▶");
+        Button next = new Button("⏭");
+        Button shuffle = new Button("🔀");
+        Button replay = new Button("🔁");
+
+        prev.setOnAction(e -> {
+            playerService.previous();
+            bindToCurrentPlayer();
+            updatePlayerUI();
+        });
+
+        play.setOnAction(e -> {
+            playerService.togglePlayPause();
+            updatePlayButton();
+        });
+
+        next.setOnAction(e -> {
+            playerService.next();
+            bindToCurrentPlayer();
+            updatePlayerUI();
+        });
+
+        shuffle.setOnAction(e -> playerService.toggleShuffle());
+        replay.setOnAction(e -> playerService.toggleLoop());
+
+        volume = new Slider(0, 1, 0.7);
+        volume.setPrefWidth(80);
+        videoPlayer.volumeProperty().bind(volume.valueProperty());
+        volume.valueProperty().addListener((obs, oldV, newV) -> {
+            playerService.setVolume((int) Math.round(newV.doubleValue() * 100));
+        });
+
+        HBox leftControls = new HBox(3, lyrics, shuffle, prev);
+        leftControls.setAlignment(Pos.CENTER_RIGHT);
+        leftControls.setPrefWidth(200);
+        leftControls.setPadding(new Insets(0, 0, 0, 0));
+
+        StackPane centerControls = new StackPane(play);
+        centerControls.setAlignment(Pos.CENTER);
+        centerControls.setPrefWidth(40);
+        centerControls.setMinWidth(40);
+        centerControls.setMaxWidth(40);
+
+        HBox rightControls = new HBox(3, next, replay, new Label("🔊"), volume);
+        rightControls.setAlignment(Pos.CENTER_LEFT);
+        rightControls.setPrefWidth(200);
+        rightControls.setPadding(new Insets(0, 0, 0, 0));
+
+        BorderPane controlBar = new BorderPane();
+        controlBar.setLeft(leftControls);
+        controlBar.setCenter(centerControls);
+        controlBar.setRight(rightControls);
+        controlBar.setPadding(new Insets(3));
+
+        progress = new Slider();
+        progress.setPrefWidth(300);
+        progress.setMin(0);
+        progress.setMax(100);
+
+        time = new Label("00:00");
+        totalTime = new Label("00:00");
+
+        progress.setOnMousePressed(e -> userDraggingProgress = true);
+        progress.setOnMouseReleased(e -> {
+            MediaPlayer current = playerService.getMediaPlayer();
+            if (current != null && current.getTotalDuration() != null && !current.getTotalDuration().isUnknown()) {
+                current.seek(javafx.util.Duration.seconds(progress.getValue()));
             }
+            userDraggingProgress = false;
+        });
 
-            double height = Math.max(5, value * 2);
-            bar.setHeight(15); // fix ความสูงเริ่มต้น
-            bar.setScaleY(height / 20.0); // ขยาย/หดตามเสียง
+        HBox progressBar = new HBox(10, time, progress, totalTime);
+        progressBar.setAlignment(Pos.CENTER);
+
+        VBox bottom = new VBox(8, controlBar, progressBar);
+        bottom.setPadding(new Insets(10));
+        root.setBottom(bottom);
+
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.setTitle("FungJai");
+        stage.setResizable(false);
+        stage.setMinWidth(500);
+        stage.setMinHeight(450);
+        stage.setMaxWidth(500);
+        stage.setMaxHeight(450);
+
+        playerService.setOnSongChanged(() -> {
+            bindToCurrentPlayer();
+            updatePlayerUI();
+        });
+
+        updatePlayerUI();
+        stage.show();
+    }
+
+    private void bindToCurrentPlayer() {
+        MediaPlayer current = playerService.getMediaPlayer();
+        if (boundPlayer == current) {
+            return;
         }
-    });
 
-
-
-    VBox center = new VBox(10, videoView, songLine, eqBars);
-    center.setAlignment(Pos.CENTER);
-    center.setPadding(new Insets(10));
-    root.setCenter(center);
-
-    // ================= BOTTOM =================
-    Button lyrics = new Button("Lyrics");
-    Button prev = new Button("⏮");
-    Button play = new Button("▶");
-
-    play.setOnAction(e -> {
-        if (mediaPlayer != null) {
-            mediaPlayer.play();
+        if (boundPlayer != null && currentTimeListener != null) {
+            boundPlayer.currentTimeProperty().removeListener(currentTimeListener);
         }
-    });
-    mediaPlayer.setOnReady(() -> {
-    mediaPlayer.play();
-});
-    Button next = new Button("⏭");
-    Button shuffle = new Button("🔀");
-    Button replay = new Button("🔁");
 
-    Slider volume = new Slider(0, 1, 0.7);
-    volume.setPrefWidth(80);
-    videoPlayer.volumeProperty().bind(volume.valueProperty());
+        boundPlayer = current;
+        if (boundPlayer == null) {
+            clearSpectrum();
+            return;
+        }
 
-    // ===== ซ้าย =====
-    HBox leftControls = new HBox(3, lyrics, shuffle, prev);
-    leftControls.setAlignment(Pos.CENTER_RIGHT);
-    leftControls.setPrefWidth(200);
-    leftControls.setPadding(new Insets(0, 0, 0, 0)); // 👈 ดันเข้ากลาง
+        boundPlayer.setAudioSpectrumInterval(0.05);
+        boundPlayer.setAudioSpectrumNumBands(26);
+        boundPlayer.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
+            for (int i = 0; i < eqBars.getChildren().size() && i < magnitudes.length; i++) {
+                Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
+                double value = magnitudes[i] + 60;
+                if (i > 10 && i < 20) {
+                    value *= 2;
+                }
+                double height = Math.max(5, value * 2);
+                bar.setHeight(15);
+                bar.setScaleY(height / 20.0);
+            }
+        });
 
-    // ===== กลาง (▶ ตรงกลางจริง) =====
-    StackPane centerControls = new StackPane(play);
-    centerControls.setAlignment(Pos.CENTER);
-    centerControls.setPrefWidth(40);
-    centerControls.setMinWidth(40);
-    centerControls.setMaxWidth(40);
+        boundPlayer.setOnReady(() -> {
+            progress.setMax(boundPlayer.getTotalDuration().toSeconds());
+            totalTime.setText(formatDuration(boundPlayer.getTotalDuration()));
+            updatePlayButton();
+        });
 
-    // ===== ขวา =====
-    HBox rightControls = new HBox(3, next, replay, new Label("🔊"), volume);
-    rightControls.setAlignment(Pos.CENTER_LEFT);
-    rightControls.setPrefWidth(200);
-    rightControls.setPadding(new Insets(0, 0, 0, 0)); // 👈 ดันเข้ากลาง
+        currentTimeListener = obs -> {
+            if (!userDraggingProgress) {
+                progress.setValue(boundPlayer.getCurrentTime().toSeconds());
+            }
+            time.setText(formatDuration(boundPlayer.getCurrentTime()));
+            if (boundPlayer.getTotalDuration() != null && !boundPlayer.getTotalDuration().isUnknown()) {
+                totalTime.setText(formatDuration(boundPlayer.getTotalDuration()));
+            }
+            updatePlayButton();
+        };
 
-    // ===== control bar =====
-    BorderPane controlBar = new BorderPane();
-    controlBar.setLeft(leftControls);
-    controlBar.setCenter(centerControls);
-    controlBar.setRight(rightControls);
-    controlBar.setPadding(new Insets(3));
+        boundPlayer.currentTimeProperty().addListener(currentTimeListener);
+        updatePlayButton();
+    }
 
-    // (debug เอาออกได้ทีหลัง)
-    // controlBar.setStyle("-fx-border-color: red;");
-    // centerControls.setStyle("-fx-border-color: blue;");
+    private void updatePlayerUI() {
+        Song currentSong = playerService.getCurrentSong();
+        if (currentSong == null) {
+            song.setText("Song Title");
+            artist.setText("Artist");
+            time.setText("00:00");
+            totalTime.setText("00:00");
+            progress.setValue(0);
+            updatePlayButton();
+            clearSpectrum();
+            return;
+        }
 
-    // ===== progress bar =====
-    Slider progress = new Slider();
-    progress.setPrefWidth(350);
+        song.setText(currentSong.getTitle());
+        String artistName = currentSong.getArtist();
+        artist.setText(artistName == null || artistName.isBlank() ? "Unknown Artist" : artistName);
+        updatePlayButton();
+    }
 
-    Label time = new Label("00:00");
+    private void updatePlayButton() {
+        play.setText(playerService.isPlaying() ? "⏸" : "▶");
+    }
 
-    HBox progressBar = new HBox(10, time, progress);
-    progressBar.setAlignment(Pos.CENTER);
+    private void clearSpectrum() {
+        for (int i = 0; i < eqBars.getChildren().size(); i++) {
+            Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
+            bar.setScaleY(1.0);
+        }
+    }
 
-    // ===== bottom =====
-    VBox bottom = new VBox(8, controlBar, progressBar);
-    bottom.setPadding(new Insets(10));
-    root.setBottom(bottom);
+    private String formatDuration(javafx.util.Duration duration) {
+        if (duration == null || duration.isUnknown()) {
+            return "00:00";
+        }
+        int totalSeconds = (int) Math.floor(duration.toSeconds());
+        int mins = Math.max(0, totalSeconds) / 60;
+        int secs = Math.max(0, totalSeconds) % 60;
+        return String.format("%02d:%02d", mins, secs);
+    }
 
-    
-    // ================= SCENE =================
-    Scene scene = new Scene(root);
-    stage.setScene(scene);
-    stage.setTitle("FungJai");
-    stage.setResizable(false);
-    stage.setResizable(false);
-    stage.setMinWidth(500);
-    stage.setMinHeight(450);
-    stage.setMaxWidth(500);
-    stage.setMaxHeight(450);
-    stage.show();
-}
-
-private Button menuBtn(String text) {
-    Button b = new Button(text);
-
-    b.setPrefWidth(100);
-    b.setPrefHeight(32);
-
-    // default
-    b.setStyle(
-        "-fx-background-color: transparent;" +
-        "-fx-border-color: transparent;" +
-        "-fx-font-weight: bold;" +
-        "-fx-text-fill: #444444;" +
-        "-fx-cursor: hand;"
-    );
-
-    // hover
-    b.setOnMouseEntered(e ->
-        b.setStyle(
-            "-fx-background-color: rgba(0,0,0,0.08);" +
-            "-fx-border-color: transparent;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: black;"
-        )
-    );
-
-    // exit
-    b.setOnMouseExited(e ->
+    private Button menuBtn(String text) {
+        Button b = new Button(text);
+        b.setPrefWidth(100);
+        b.setPrefHeight(32);
         b.setStyle(
             "-fx-background-color: transparent;" +
             "-fx-border-color: transparent;" +
             "-fx-font-weight: bold;" +
-            "-fx-text-fill: #444444;"
-        )
-    );
-
-    return b;
+            "-fx-text-fill: #444444;" +
+            "-fx-cursor: hand;"
+        );
+        b.setOnMouseEntered(e ->
+            b.setStyle(
+                "-fx-background-color: rgba(0,0,0,0.08);" +
+                "-fx-border-color: transparent;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: black;"
+            )
+        );
+        b.setOnMouseExited(e ->
+            b.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-border-color: transparent;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #444444;"
+            )
+        );
+        return b;
     }
-
-
 }
