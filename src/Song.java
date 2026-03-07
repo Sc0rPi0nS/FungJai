@@ -6,12 +6,14 @@ import java.io.Serializable;
 public class Song extends MediaItem implements Playable, Serializable {
 
     private String filePathMp3;
-    private MediaPlayer mediaPlayer;
+    private int durationSec;
+    private transient MediaPlayer mediaPlayer;
 
-    public Song(String title, String artist, String filePathMp3, int durationSec) {
-        super(title, artist);
-        this.filePathMp3 = filePathMp3;
-    }
+public Song(String title, String artist, String filePathMp3, int durationSec) {
+    super(title, artist);
+    this.filePathMp3 = filePathMp3;
+    this.durationSec = durationSec;
+}
 
     public MediaPlayer getMediaPlayer() {
         if (mediaPlayer == null) {
@@ -39,10 +41,10 @@ public class Song extends MediaItem implements Playable, Serializable {
         if (mediaPlayer != null) mediaPlayer.stop();
     }
 
-    @Override
-    public int getDurationSrc() {
-        return 0;
-    }
+@Override
+public int getDurationSrc() {
+    return durationSec;
+}
     
     public String getFilePathMp3(){
         return filePathMp3;

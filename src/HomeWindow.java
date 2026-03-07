@@ -1,3 +1,4 @@
+
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -10,7 +11,8 @@ import java.net.URL;
 
 public class HomeWindow {
 
-    private MediaPlayer videoPlayer;
+    private transient MediaPlayer videoPlayer;
+    ;
     private PlayerService playerService;
     private Song currentSong;
 
@@ -25,6 +27,8 @@ public class HomeWindow {
     private Slider progress;
     private Slider volume;
 
+    private Button play;
+
     public void show(Stage stage) {
 
         libraryService = new LibraryService();
@@ -38,18 +42,14 @@ public class HomeWindow {
         root.setStyle("-fx-background-color: #f5f5f5;");
 
         // ================= TOP =================
-        Button home = menuBtn("HOME");
-
-        Button mySong = menuBtn("MYSONG");
-        mySong.setOnAction(e ->
-                new MySongWindow(this, libraryService).show(stage)
+        Button home = menuBtn("HOME", true);
+        Button mySong = menuBtn("MYSONG", false);
+        Button playlist = menuBtn("MYPLAYLIST", false);
+        Button mix = menuBtn("MIXFORYOU", false);
+        mySong.setOnAction(e
+                -> new MySongWindow(this, libraryService).show(stage)
         );
-
-        Button playlist = menuBtn("MYPLAYLIST");
         playlist.setOnAction(e -> new PlaylistWindow().show(stage));
-
-        Button mix = menuBtn("MIXFORYOU");
-
         HBox menuBar = new HBox(15, home, mySong, playlist, mix);
         menuBar.setAlignment(Pos.CENTER);
         menuBar.setPadding(new Insets(4));
@@ -77,8 +77,8 @@ public class HomeWindow {
         clip.setArcHeight(10);
         videoView.setClip(clip);
 
-        videoPlayer.setOnReady(() ->
-                videoView.setViewport(new Rectangle2D(200, 100, 1500, 900))
+        videoPlayer.setOnReady(()
+                -> videoView.setViewport(new Rectangle2D(200, 100, 1500, 900))
         );
 
         song = new Label("Song Title");
@@ -110,7 +110,8 @@ public class HomeWindow {
         // ================= BOTTOM =================
         Button lyrics = new Button("Lyrics");
         Button prev = new Button("⏮");
-        Button play = new Button("▶");
+        play = new Button("▶");
+
         Button next = new Button("⏭");
         Button shuffle = new Button("🔀");
         Button replay = new Button("🔁");
@@ -145,9 +146,23 @@ public class HomeWindow {
         controlBar.setRight(rightControls);
 
         progress = new Slider();
+        progress.setMin(0);
         progress.setPrefWidth(350);
+        progress.setStyle("-fx-background-color:transparent;");
+
+        progress.setStyle(
+                "-fx-background-color: transparent;"
+                + "-fx-control-inner-background: #cccccc;"
+        );
+        progress.setPrefHeight(4);
+
+        StackPane progressStack = new StackPane(progress);
+        progressStack.setPrefWidth(350);
+        progressStack.setMaxWidth(350);
 
         progress.valueProperty().addListener((obs, oldVal, newVal) -> {
+
+            updateProgressColor();
 
             MediaPlayer player = playerService.getMediaPlayer();
 
@@ -161,7 +176,7 @@ public class HomeWindow {
 
         time = new Label("00:00");
 
-        HBox progressBar = new HBox(10, time, progress);
+        HBox progressBar = new HBox(10, time, progressStack);
         progressBar.setAlignment(Pos.CENTER);
 
         VBox bottom = new VBox(8, controlBar, progressBar);
@@ -170,10 +185,11 @@ public class HomeWindow {
         root.setBottom(bottom);
 
         // ================= BUTTON EVENTS =================
-
         play.setOnAction(e -> {
 
-            if (playerService.getCurrentSong() == null) return;
+            if (playerService.getCurrentSong() == null) {
+                return;
+            }
 
             playerService.togglePlayPause();
 
@@ -211,20 +227,22 @@ public class HomeWindow {
 
             playerService.toggleShuffle();
 
-            if (playerService.isShuffling())
+            if (playerService.isShuffling()) {
                 shuffle.setStyle("-fx-text-fill:green;");
-            else
+            } else {
                 shuffle.setStyle("");
+            }
         });
 
         replay.setOnAction(e -> {
 
             playerService.toggleLoop();
 
-            if (playerService.isLooping())
+            if (playerService.isLooping()) {
                 replay.setStyle("-fx-text-fill:green;");
-            else
+            } else {
                 replay.setStyle("");
+            }
         });
 
         lyrics.setOnAction(e -> {
@@ -233,8 +251,8 @@ public class HomeWindow {
 
             if (current != null) {
 
-                String url =
-                        "https://www.musixmatch.com/lyrics/"
+                String url
+                        = "https://www.musixmatch.com/lyrics/"
                         + current.getArtist()
                         + "/"
                         + current.getTitle();
@@ -257,18 +275,50 @@ public class HomeWindow {
     }
 
     // ================= MENU BUTTON =================
-    private Button menuBtn(String text) {
+    private Button menuBtn(String text, boolean active) {
 
         Button b = new Button(text);
 
         b.setPrefWidth(100);
         b.setPrefHeight(32);
 
-        b.setStyle(
-                "-fx-background-color:transparent;"
-                + "-fx-font-weight:bold;"
-                + "-fx-text-fill:#444;"
-        );
+        if (active) {
+            b.setStyle(
+                    "-fx-background-color:#4773a1;"
+                    + "-fx-font-weight:bold;"
+                    + "-fx-text-fill:black;"
+                    + "-fx-cursor:hand;"
+            );
+        } else {
+            b.setStyle(
+                    "-fx-background-color:transparent;"
+                    + "-fx-font-weight:bold;"
+                    + "-fx-text-fill:#444;"
+                    + "-fx-cursor:hand;"
+            );
+        }
+
+        b.setOnMouseEntered(e -> {
+            if (!active) {
+                b.setStyle(
+                        "-fx-background-color:#4773a1;"
+                        + "-fx-font-weight:bold;"
+                        + "-fx-text-fill:black;"
+                        + "-fx-cursor:hand;"
+                );
+            }
+        });
+
+        b.setOnMouseExited(e -> {
+            if (!active) {
+                b.setStyle(
+                        "-fx-background-color:transparent;"
+                        + "-fx-font-weight:bold;"
+                        + "-fx-text-fill:#444;"
+                        + "-fx-cursor:hand;"
+                );
+            }
+        });
 
         return b;
     }
@@ -293,10 +343,27 @@ public class HomeWindow {
         });
     }
 
+    private void updateProgressColor() {
+
+        double percent = (progress.getValue() - progress.getMin())
+                / (progress.getMax() - progress.getMin()) * 100;
+
+        Node track = progress.lookup(".track");
+
+        if (track != null) {
+            track.setStyle(String.format(
+                    "-fx-background-color: linear-gradient(to right, #4773a1 %.2f%%, #cccccc %.2f%%);",
+                    percent, percent
+            ));
+        }
+    }
+
     // ================= SET SONG =================
     public void setSongInfo(Song song) {
 
-        if (song == null) return;
+        if (song == null) {
+            return;
+        }
 
         this.currentSong = song;
 
@@ -304,6 +371,7 @@ public class HomeWindow {
         this.artist.setText(song.getArtist());
 
         playerService.playSong(song);
+        play.setText("⏸");
 
         MediaPlayer player = playerService.getMediaPlayer();
 
@@ -313,34 +381,38 @@ public class HomeWindow {
 
             setupSpectrum(player);
 
-            player.setOnReady(() ->
-                    progress.setMax(
-                            player.getTotalDuration().toSeconds()
-                    )
-            );
+            player.setOnReady(() -> {
 
+                double total = player.getTotalDuration().toSeconds();
+
+                progress.setMin(0);
+                progress.setMax(total);
+                progress.setValue(0);
+
+            });
             player.currentTimeProperty().addListener((obs, oldT, newT) -> {
 
-                if (!progress.isValueChanging()) {
+                double current = newT.toSeconds();
 
-                    progress.setValue(newT.toSeconds());
+                if (!progress.isValueChanging()) {
+                    progress.setValue(current);
                 }
 
-                int min = (int) newT.toSeconds() / 60;
-                int sec = (int) newT.toSeconds() % 60;
+                updateProgressColor(); // ⭐ ทำให้สี progress วิ่งตามเพลง
 
-                time.setText(
-                        String.format("%02d:%02d", min, sec)
-                );
+                int min = (int) current / 60;
+                int sec = (int) current % 60;
+
+                time.setText(String.format("%02d:%02d", min, sec));
             });
 
-            // ⭐ auto next
             player.setOnEndOfMedia(() -> {
 
                 Song nextSong = playerService.next();
 
                 if (nextSong != null) {
                     setSongInfo(nextSong);
+                    play.setText("⏸");
                 }
             });
         }
