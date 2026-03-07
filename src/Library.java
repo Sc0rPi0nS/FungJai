@@ -3,17 +3,24 @@ import java.util.*;
 
 public class Library implements Serializable{
     private static final long serialVersionUID = 1L;
+    private Playlist allSongs;
     
     private final List<Song> mySongs;
     private final List<Playlist> playlists;
     private final List<Playlist> mixForYou;
     
+    
     public Library() {
         this.mySongs = new ArrayList<>();
         this.playlists = new ArrayList<>();
         this.mixForYou = new ArrayList<>();
+        
+        this.allSongs = new Playlist("All Songs", "Default playlist with all songs");
     }
 
+    public Playlist getAllSongs() {
+    return allSongs;
+}
     public List<Song> getMySongs() {
         return Collections.unmodifiableList(mySongs);
     }
@@ -26,16 +33,19 @@ public class Library implements Serializable{
         return Collections.unmodifiableList(mixForYou);
     }
     
-    public void addSong(Song song) {
-        Objects.requireNonNull(song, "song must not be null");
-        mySongs.add(song);
-    }
+public void addSong(Song song) {
+    Objects.requireNonNull(song, "song must not be null");
+
+    mySongs.add(song);
+    allSongs.addSong(song); // ⭐ เพิ่มบรรทัดนี้
+}
     
     public boolean removeSong(UUID songId) {
         Objects.requireNonNull(songId, "songId must not be null");
         
         boolean removed = mySongs.removeIf(s -> s.getId().equals(songId));
         if (!removed) return false;
+        allSongs.removeSong(songId);
         
         for (Playlist p : playlists) {
             p.removeSong(songId);

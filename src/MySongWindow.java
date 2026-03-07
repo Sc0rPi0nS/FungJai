@@ -17,15 +17,14 @@ public class MySongWindow {
     private TableView<SongRow> table;
     private ObservableList<SongRow> tableData;
 
-    public MySongWindow(HomeWindow home) {
-        this.home = home;
-    }
+public MySongWindow(HomeWindow home, LibraryService libraryService) {
+    this.home = home;
+    this.libraryService = libraryService;
+}
 
     public void show(Stage owner) {
         Stage stage = new Stage();
         stage.initOwner(owner);
-
-        libraryService = new LibraryService();
 
         tableData = FXCollections.observableArrayList();
         table = new TableView<>(tableData);
@@ -98,12 +97,19 @@ public class MySongWindow {
 
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
 
-                    SongRow song = row.getItem();
+                    SongRow r = row.getItem();
 
-                    home.setSongInfo(
-                            song.titleProperty().get(),
-                            song.artistProperty().get()
-                    );
+                    // หา Song จริงจาก Library ด้วย id
+                    Song song = libraryService.getLibrary()
+                            .getMySongs()
+                            .stream()
+                            .filter(s -> s.getId().equals(r.getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (song != null) {
+                        home.setSongInfo(song);
+                    }
                 }
             });
 
@@ -216,4 +222,5 @@ public class MySongWindow {
         popup.setScene(new Scene(layout, 300, 250));
         popup.show();
     }
+
 }

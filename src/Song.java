@@ -16,6 +16,9 @@ public class Song extends MediaItem implements Playable, Serializable {
     public MediaPlayer getMediaPlayer() {
         if (mediaPlayer == null) {
             Media media = new Media(new File(filePathMp3).toURI().toString());
+            media.setOnError(() -> {
+    System.out.println(media.getError());
+});
             mediaPlayer = new MediaPlayer(media);
         }
         return mediaPlayer;

@@ -1,261 +1,268 @@
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
+
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
 import javafx.scene.media.*;
-import javafx.util.Duration;
-import javafx.scene.text.*;
 import javafx.scene.shape.*;
-import javafx.animation.*;
+import javafx.geometry.Rectangle2D;
 import java.net.URL;
-import javafx.scene.web.*;
+
 public class HomeWindow {
 
-    private MediaPlayer mediaPlayer;
     private MediaPlayer videoPlayer;
-    
+    private PlayerService playerService;
+    private Song currentSong;
+
+    private LibraryService libraryService;
     private Label song;
     private Label artist;
+    private HBox eqBars;
 
-public void show(Stage stage) {
+    public void show(Stage stage) {
 
-    BorderPane root = new BorderPane();
-    root.setPrefSize(500, 450);
-    root.setStyle("-fx-background-color: #f5f5f5;");
+        libraryService = new LibraryService();
 
-    // ================= TOP =================
-    Button home = menuBtn("HOME");
-    Button mySong = menuBtn("MYSONG");
-    mySong.setOnAction(e -> new MySongWindow(this).show(stage));
-    Button playlist = menuBtn("MYPLAYLIST");
-    playlist.setOnAction(e -> new PlaylistWindow().show(stage));
-    Button mix = menuBtn("MIXFORYOU");
-
-    HBox menuBar = new HBox(15, home, mySong, playlist, mix);
-    menuBar.setPrefWidth(420);
-    menuBar.setMaxWidth(420);
-    menuBar.setAlignment(Pos.CENTER);
-    menuBar.setPadding(new Insets(4));
-    menuBar.setStyle(
-    "-fx-background-color: #eeeeee;" +
-    "-fx-border-color: #cccccc;" +
-    "-fx-border-width: 1;" +
-    "-fx-border-radius: 0" +
-    "-fx-background-radius: 0"
-);
-
-    VBox top = new VBox(menuBar);
-    top.setAlignment(Pos.CENTER); 
-    root.setTop(top);
-
-    // ================= CENTER =================
-    // ===== VIDEO (แทน ImageView) =====
-    URL videoUrl = getClass().getResource("/pictures/nineza123.mp4");
-    if (videoUrl == null) {
-        throw new RuntimeException("ไม่พบไฟล์ nineza123.mp4");
-    }
-
-    Media media = new Media(videoUrl.toExternalForm());
-    videoPlayer = new MediaPlayer(media);
-    videoPlayer.setMute(true);
-    videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-    videoPlayer.play();
-    
-    MediaView videoView = new MediaView(videoPlayer);
-
-
-    videoView.setFitWidth(370);
-    videoView.setFitHeight(200);
-    videoView.setPreserveRatio(false);
-
-    /* ===== 2. ครอปไม่ให้ล้น ===== */
-    Rectangle clip = new Rectangle(370, 200);
-    clip.setArcWidth(10);
-    clip.setArcHeight(10);
-    videoView.setClip(clip);
-
-    /* ===== 3. รอ media พร้อมก่อนค่อยซูม ===== */
-    videoPlayer.setOnReady(() -> {
-
-        videoView.setViewport(
-            new Rectangle2D(200, 100, 1500, 900)
+        playerService = new PlayerService(
+                libraryService.getLibrary().getAllSongs()
         );
 
-        videoPlayer.play();
-    });
+        BorderPane root = new BorderPane();
+        root.setPrefSize(500, 450);
+        root.setStyle("-fx-background-color: #f5f5f5;");
 
-song = new Label("Song Title");
-artist = new Label("Artist");
+        // ================= TOP =================
+        Button home = menuBtn("HOME");
 
-    song.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-    artist.setStyle("-fx-text-fill: gray;");
+        Button mySong = menuBtn("MYSONG");
+mySong.setOnAction(e -> 
+    new MySongWindow(this, libraryService).show(stage)
+);
 
-    // รวมให้อยู่บรรทัดเดียว
-    HBox songLine = new HBox(6, song, new Label("–"), artist);
-    songLine.setAlignment(Pos.CENTER);
+        Button playlist = menuBtn("MYPLAYLIST");
+        playlist.setOnAction(e -> new PlaylistWindow().show(stage));
 
-    URL audioUrl = getClass().getResource("/song/song1.mp3");
-    if (audioUrl == null) {
-        throw new RuntimeException("ไม่พบไฟล์ testsong.mp3");
-    }
-    Media audioMedia = new Media(audioUrl.toExternalForm());
-    mediaPlayer = new MediaPlayer(audioMedia);
-    // สร้าง EQ bar 32 แท่ง
-    HBox eqBars = new HBox(2);
-    eqBars.setAlignment(Pos.CENTER);
-    for (int i = 0; i < 26; i++) {
-        Rectangle bar = new Rectangle(8, 15);
-        bar.setFill(javafx.scene.paint.Color.GREY);
-        eqBars.getChildren().add(bar);
-}
+        Button mix = menuBtn("MIXFORYOU");
 
-    // ตั้งค่า spectrum listener
-    mediaPlayer.setAudioSpectrumInterval(0.05);
-    mediaPlayer.setAudioSpectrumNumBands(32);
+        HBox menuBar = new HBox(15, home, mySong, playlist, mix);
+        menuBar.setPrefWidth(420);
+        menuBar.setMaxWidth(420);
+        menuBar.setAlignment(Pos.CENTER);
+        menuBar.setPadding(new Insets(4));
+        menuBar.setStyle(
+                "-fx-background-color: #eeeeee;"
+                + "-fx-border-color: #cccccc;"
+                + "-fx-border-width: 1;"
+        );
 
-    mediaPlayer.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
-        for (int i = 0; i < magnitudes.length; i++) {
-            Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
+        VBox top = new VBox(menuBar);
+        top.setAlignment(Pos.CENTER);
+        root.setTop(top);
 
-            double value = magnitudes[i] + 60; // normalize (-60 ถึง 0 → 0 ถึง 60)
+        // ================= CENTER =================
+        URL videoUrl = getClass().getResource("/pictures/nineza123.mp4");
 
-            // ถ้าเป็นแท่งตรงกลาง (เช่น index 12–20) ให้ขยายการเคลื่อนไหว
-            if (i > 12 && i < 25) {
-                value *= 2; // ขยาย amplitude
+        if (videoUrl == null) {
+            throw new RuntimeException("ไม่พบไฟล์ nineza123.mp4");
+        }
+
+        Media media = new Media(videoUrl.toExternalForm());
+        videoPlayer = new MediaPlayer(media);
+        videoPlayer.setMute(true);
+        videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+        videoPlayer.pause();
+
+        MediaView videoView = new MediaView(videoPlayer);
+        videoView.setFitWidth(370);
+        videoView.setFitHeight(200);
+        videoView.setPreserveRatio(false);
+
+        Rectangle clip = new Rectangle(370, 200);
+        clip.setArcWidth(10);
+        clip.setArcHeight(10);
+        videoView.setClip(clip);
+
+        videoPlayer.setOnReady(() -> {
+            videoView.setViewport(new Rectangle2D(200, 100, 1500, 900));
+        });
+
+        song = new Label("Song Title");
+        artist = new Label("Artist");
+
+        song.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        artist.setStyle("-fx-text-fill: gray;");
+
+        HBox songLine = new HBox(6, song, new Label("–"), artist);
+        songLine.setAlignment(Pos.CENTER);
+
+        // ===== EQ Bars =====
+        eqBars = new HBox(2);
+        eqBars.setAlignment(Pos.CENTER);
+
+        for (int i = 0; i < 32; i++) {
+            Rectangle bar = new Rectangle(8, 15);
+            bar.setFill(javafx.scene.paint.Color.GREY);
+            eqBars.getChildren().add(bar);
+        }
+
+        VBox center = new VBox(10, videoView, songLine, eqBars);
+        center.setAlignment(Pos.CENTER);
+        center.setPadding(new Insets(10));
+
+        root.setCenter(center);
+
+        // ================= BOTTOM =================
+        Button lyrics = new Button("Lyrics");
+        Button prev = new Button("⏮");
+
+        Button play = new Button("▶");
+
+        play.setOnAction(e -> {
+
+            playerService.togglePlayPause();
+
+            if (playerService.isPlaying()) {
+                play.setText("⏸");
+                videoPlayer.play();
+            } else {
+                play.setText("▶");
+                videoPlayer.pause();
             }
+        });
 
-            double height = Math.max(5, value * 2);
-            bar.setHeight(15); // fix ความสูงเริ่มต้น
-            bar.setScaleY(height / 20.0); // ขยาย/หดตามเสียง
-        }
-    });
+        Button next = new Button("⏭");
+        Button shuffle = new Button("🔀");
+        Button replay = new Button("🔁");
 
+        Slider volume = new Slider(0, 1, 0.7);
+        volume.setPrefWidth(80);
 
+        videoPlayer.volumeProperty().bind(volume.valueProperty());
 
-    VBox center = new VBox(10, videoView, songLine, eqBars);
-    center.setAlignment(Pos.CENTER);
-    center.setPadding(new Insets(10));
-    root.setCenter(center);
+        // ===== Left =====
+        HBox leftControls = new HBox(3, lyrics, shuffle, prev);
+        leftControls.setAlignment(Pos.CENTER_RIGHT);
+        leftControls.setPrefWidth(200);
 
-    // ================= BOTTOM =================
-    Button lyrics = new Button("Lyrics");
-    Button prev = new Button("⏮");
-    Button play = new Button("▶");
+        // ===== Center =====
+        StackPane centerControls = new StackPane(play);
+        centerControls.setAlignment(Pos.CENTER);
+        centerControls.setPrefWidth(40);
 
-    play.setOnAction(e -> {
-        if (mediaPlayer != null) {
-            mediaPlayer.play();
-        }
-    });
-    Button next = new Button("⏭");
-    Button shuffle = new Button("🔀");
-    Button replay = new Button("🔁");
+        // ===== Right =====
+        HBox rightControls = new HBox(3, next, replay, new Label("🔊"), volume);
+        rightControls.setAlignment(Pos.CENTER_LEFT);
+        rightControls.setPrefWidth(200);
 
-    Slider volume = new Slider(0, 1, 0.7);
-    volume.setPrefWidth(80);
-    videoPlayer.volumeProperty().bind(volume.valueProperty());
+        BorderPane controlBar = new BorderPane();
+        controlBar.setLeft(leftControls);
+        controlBar.setCenter(centerControls);
+        controlBar.setRight(rightControls);
+        controlBar.setPadding(new Insets(3));
 
-    // ===== ซ้าย =====
-    HBox leftControls = new HBox(3, lyrics, shuffle, prev);
-    leftControls.setAlignment(Pos.CENTER_RIGHT);
-    leftControls.setPrefWidth(200);
-    leftControls.setPadding(new Insets(0, 0, 0, 0)); // 👈 ดันเข้ากลาง
+        Slider progress = new Slider();
+        progress.setPrefWidth(350);
 
-    // ===== กลาง (▶ ตรงกลางจริง) =====
-    StackPane centerControls = new StackPane(play);
-    centerControls.setAlignment(Pos.CENTER);
-    centerControls.setPrefWidth(40);
-    centerControls.setMinWidth(40);
-    centerControls.setMaxWidth(40);
+        Label time = new Label("00:00");
 
-    // ===== ขวา =====
-    HBox rightControls = new HBox(3, next, replay, new Label("🔊"), volume);
-    rightControls.setAlignment(Pos.CENTER_LEFT);
-    rightControls.setPrefWidth(200);
-    rightControls.setPadding(new Insets(0, 0, 0, 0)); // 👈 ดันเข้ากลาง
+        HBox progressBar = new HBox(10, time, progress);
+        progressBar.setAlignment(Pos.CENTER);
 
-    // ===== control bar =====
-    BorderPane controlBar = new BorderPane();
-    controlBar.setLeft(leftControls);
-    controlBar.setCenter(centerControls);
-    controlBar.setRight(rightControls);
-    controlBar.setPadding(new Insets(3));
+        VBox bottom = new VBox(8, controlBar, progressBar);
+        bottom.setPadding(new Insets(10));
 
-    // (debug เอาออกได้ทีหลัง)
-    // controlBar.setStyle("-fx-border-color: red;");
-    // centerControls.setStyle("-fx-border-color: blue;");
+        root.setBottom(bottom);
 
-    // ===== progress bar =====
-    Slider progress = new Slider();
-    progress.setPrefWidth(350);
+        // ================= SCENE =================
+        Scene scene = new Scene(root);
 
-    Label time = new Label("00:00");
-
-    HBox progressBar = new HBox(10, time, progress);
-    progressBar.setAlignment(Pos.CENTER);
-
-    // ===== bottom =====
-    VBox bottom = new VBox(8, controlBar, progressBar);
-    bottom.setPadding(new Insets(10));
-    root.setBottom(bottom);
-
-    
-    // ================= SCENE =================
-    Scene scene = new Scene(root);
-    stage.setScene(scene);
-    stage.setTitle("FungJai");
-    stage.setResizable(false);
-    stage.setResizable(false);
-    stage.setMinWidth(500);
-    stage.setMinHeight(450);
-    stage.setMaxWidth(500);
-    stage.setMaxHeight(450);
-    stage.show();
-}
-
-private Button menuBtn(String text) {
-    Button b = new Button(text);
-
-    b.setPrefWidth(100);
-    b.setPrefHeight(32);
-
-    // default
-    b.setStyle(
-        "-fx-background-color: transparent;" +
-        "-fx-border-color: transparent;" +
-        "-fx-font-weight: bold;" +
-        "-fx-text-fill: #444444;" +
-        "-fx-cursor: hand;"
-    );
-
-    // hover
-    b.setOnMouseEntered(e ->
-        b.setStyle(
-            "-fx-background-color: rgba(0,0,0,0.08);" +
-            "-fx-border-color: transparent;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: black;"
-        )
-    );
-
-    // exit
-    b.setOnMouseExited(e ->
-        b.setStyle(
-            "-fx-background-color: transparent;" +
-            "-fx-border-color: transparent;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #444444;"
-        )
-    );
-
-    return b;
+        stage.setScene(scene);
+        stage.setTitle("FungJai");
+        stage.setResizable(false);
+        stage.setMinWidth(500);
+        stage.setMinHeight(450);
+        stage.setMaxWidth(500);
+        stage.setMaxHeight(450);
+        stage.show();
     }
-    public void setSongInfo(String title, String artist) {
-        song.setText(title);
-        this.artist.setText(artist);
+
+    // ================= MENU BUTTON =================
+    private Button menuBtn(String text) {
+
+        Button b = new Button(text);
+
+        b.setPrefWidth(100);
+        b.setPrefHeight(32);
+
+        b.setStyle(
+                "-fx-background-color: transparent;"
+                + "-fx-border-color: transparent;"
+                + "-fx-font-weight: bold;"
+                + "-fx-text-fill: #444444;"
+                + "-fx-cursor: hand;"
+        );
+
+        b.setOnMouseEntered(e
+                -> b.setStyle(
+                        "-fx-background-color: rgba(0,0,0,0.08);"
+                        + "-fx-border-color: transparent;"
+                        + "-fx-font-weight: bold;"
+                        + "-fx-text-fill: black;"
+                )
+        );
+
+        b.setOnMouseExited(e
+                -> b.setStyle(
+                        "-fx-background-color: transparent;"
+                        + "-fx-border-color: transparent;"
+                        + "-fx-font-weight: bold;"
+                        + "-fx-text-fill: #444444;"
+                )
+        );
+
+        return b;
+    }
+
+    // ================= EQ =================
+    private void setupSpectrum(MediaPlayer player) {
+
+        player.setAudioSpectrumInterval(0.05);
+        player.setAudioSpectrumNumBands(32);
+
+        player.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
+
+            for (int i = 0; i < magnitudes.length; i++) {
+
+                Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
+
+                double value = magnitudes[i] + 60;
+
+                double height = Math.max(5, value * 2);
+
+                bar.setScaleY(height / 20.0);
+            }
+        });
+    }
+
+    // ================= SET SONG =================
+    public void setSongInfo(Song song) {
+
+        if (song == null) {
+            return;
+        }
+
+        this.currentSong = song;
+
+        this.song.setText(song.getTitle());
+        this.artist.setText(song.getArtist());
+
+        playerService.playSong(song);
+
+        MediaPlayer player = playerService.getMediaPlayer();
+
+        if (player != null) {
+            setupSpectrum(player);
+        }
     }
 }
