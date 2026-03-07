@@ -1,4 +1,5 @@
-public class DummyLibraryService {
+public class LibraryService {
     // empty for now
 
 }
+
