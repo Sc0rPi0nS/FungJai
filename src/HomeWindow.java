@@ -17,6 +17,9 @@ public class HomeWindow {
 
     private MediaPlayer mediaPlayer;
     private MediaPlayer videoPlayer;
+    
+    private Label song;
+    private Label artist;
 
 public void show(Stage stage) {
 
@@ -27,6 +30,7 @@ public void show(Stage stage) {
     // ================= TOP =================
     Button home = menuBtn("HOME");
     Button mySong = menuBtn("MYSONG");
+    mySong.setOnAction(e -> new MySongWindow(this).show(stage));
     Button playlist = menuBtn("MYPLAYLIST");
     playlist.setOnAction(e -> new PlaylistWindow().show(stage));
     Button mix = menuBtn("MIXFORYOU");
@@ -84,8 +88,8 @@ public void show(Stage stage) {
         videoPlayer.play();
     });
 
-    Label song = new Label("Song Title");
-    Label artist = new Label("Artist");
+song = new Label("Song Title");
+artist = new Label("Artist");
 
     song.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
     artist.setStyle("-fx-text-fill: gray;");
@@ -147,9 +151,6 @@ public void show(Stage stage) {
             mediaPlayer.play();
         }
     });
-    mediaPlayer.setOnReady(() -> {
-    mediaPlayer.play();
-});
     Button next = new Button("⏭");
     Button shuffle = new Button("🔀");
     Button replay = new Button("🔁");
@@ -253,6 +254,8 @@ private Button menuBtn(String text) {
 
     return b;
     }
-
-
+    public void setSongInfo(String title, String artist) {
+        song.setText(title);
+        this.artist.setText(artist);
+    }
 }

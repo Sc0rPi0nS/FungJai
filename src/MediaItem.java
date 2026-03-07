@@ -1,7 +1,9 @@
 
 import java.util.UUID;
 import java.time.LocalDateTime;
-public abstract class MediaItem {
+import java.io.Serializable;
+
+public abstract class MediaItem implements Serializable{
     private UUID id;
     private String title;
     private String artist;

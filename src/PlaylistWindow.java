@@ -11,7 +11,7 @@ import javafx.scene.shape.*;
 import javafx.scene.text.*;
 import javafx.stage.*;
 
-public class PlaylistWindow extends Application {
+public class PlaylistWindow{
 
     // ── สี match HomeWindow (#f5f5f5 theme) ──────────────────
     private static final String BG     = "#f5f5f5";
@@ -29,11 +29,6 @@ public class PlaylistWindow extends Application {
     private static final String C_LABEL = "#3a5068"; // ป้ายบนเทป
 
     private final ObservableList<PlaylistItem> playlists = FXCollections.observableArrayList();
-
-    public static void main(String[] args) { launch(args); }
-
-    @Override
-    public void start(Stage stage) { initData(); openWindow(stage); }
 
     public void show(Stage owner) {
         initData();

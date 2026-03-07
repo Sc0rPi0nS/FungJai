@@ -1,49 +1,47 @@
-public class Song extends MediaItem implements Playable {
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.io.File;
+import java.io.Serializable;
 
-    private String filePathMp4;
-    private int durationSec;
+public class Song extends MediaItem implements Playable, Serializable {
 
-    // ===== Constructor =====
-    public Song(String title, String artist,
-                String filePathMp4,
-                int durationSec) {
+    private String filePathMp3;
+    private MediaPlayer mediaPlayer;
 
+    public Song(String title, String artist, String filePathMp3, int durationSec) {
         super(title, artist);
-        this.filePathMp4 = filePathMp4;
-        this.durationSec = durationSec;
+        this.filePathMp3 = filePathMp3;
     }
 
-    // ===== Getter / Setter =====
-    public String getFilePathMp4() {
-        return filePathMp4;
+    public MediaPlayer getMediaPlayer() {
+        if (mediaPlayer == null) {
+            Media media = new Media(new File(filePathMp3).toURI().toString());
+            mediaPlayer = new MediaPlayer(media);
+        }
+        return mediaPlayer;
     }
 
-    public void setFilePathMp4(String filePathMp4) {
-        this.filePathMp4 = filePathMp4;
-    }
-
-    public void setDurationSec(int durationSec) {
-        this.durationSec = durationSec;
-    }
-
-    // ===== Implement Playable =====
     @Override
     public void play() {
-        System.out.println("Playing: " + getTitle());
+        getMediaPlayer().play();
     }
 
     @Override
     public void pause() {
-        System.out.println("Paused: " + getTitle());
+        if (mediaPlayer != null) mediaPlayer.pause();
     }
 
     @Override
     public void stop() {
-        System.out.println("Stopped: " + getTitle());
+        if (mediaPlayer != null) mediaPlayer.stop();
     }
 
     @Override
     public int getDurationSrc() {
-        return durationSec;
+        return 0;
+    }
+    
+    public String getFilePathMp3(){
+        return filePathMp3;
     }
 }

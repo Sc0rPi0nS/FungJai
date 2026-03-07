@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+
 public class Library implements Serializable{
     private static final long serialVersionUID = 1L;
     
@@ -84,5 +85,6 @@ public class Library implements Serializable{
     public Optional<Playlist> findMix(UUID mixId) {
         Objects.requireNonNull(mixId, "mixId must not be null");
         return mixForYou.stream().filter(m -> m.getId().equals(mixId)).findFirst();
-    }   
+    }
+    
 }

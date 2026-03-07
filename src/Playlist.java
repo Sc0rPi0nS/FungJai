@@ -3,8 +3,9 @@ import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.io.Serializable;
 
-public class Playlist {
+public class Playlist implements Serializable {
 
     private UUID id;
     private String name;
