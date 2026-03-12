@@ -55,8 +55,28 @@ public class PlayerService {
             }
         }
 
-        song.play();
-        isPlaying = true;
+song.play();
+
+MediaPlayer player = song.getMediaPlayer();
+
+if (player != null) {
+    player.setOnEndOfMedia(() -> {
+
+        if (loopMode == 2) { // loop one
+            player.seek(player.getStartTime());
+            player.play();
+            return;
+        }
+
+        Song nextSong = next();
+
+        if (nextSong != null) {
+            nextSong.play();
+        }
+    });
+}
+
+isPlaying = true;     
     }
 
     public void playPlaylist(Playlist playlist, int startIndex) {

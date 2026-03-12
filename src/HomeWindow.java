@@ -35,6 +35,7 @@ public class HomeWindow {
         playerService = new PlayerService(
                 libraryService.getLibrary().getAllSongs()
         );
+        
 
         BorderPane root = new BorderPane();
         root.setPrefSize(500, 450);
