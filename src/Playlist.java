@@ -1,4 +1,3 @@
-
 import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
@@ -6,6 +5,8 @@ import java.util.Objects;
 import java.io.Serializable;
 
 public class Playlist implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private UUID id;
     private String name;
@@ -29,27 +30,19 @@ public class Playlist implements Serializable {
     }
 
     public void moveSong(int from, int to) {
-        if (from >= 0 && from < songs.size() //gun error 
+        if (from >= 0 && from < songs.size()
                 && to >= 0 && to < songs.size()) {
-
             Song temp = songs.remove(from);
             songs.add(to, temp);
         }
     }
 
-    public List<Song> getSongs() {
-        return songs;
-    }
-    
-    public UUID getId() {
-        return id;
-    }
+    public List<Song> getSongs() { return songs; }
+    public UUID getId()          { return id; }
+    public String getName()      { return name; }
+    public String getDescription(){ return description; }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
+    // ── setters needed for edit ───────────────────────────────
+    public void setName(String name)            { this.name = name; }
+    public void setDescription(String desc)     { this.description = desc; }
 }
