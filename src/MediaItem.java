@@ -8,6 +8,7 @@ public abstract class MediaItem implements Serializable{
     private String title;
     private String artist;
     private LocalDateTime dateAdded;
+    private static final long serialVersionUID = 1L;
     
     public MediaItem(String title, String artist) {
         this.id = UUID.randomUUID();

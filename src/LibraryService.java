@@ -42,6 +42,13 @@ public class LibraryService {
         library.deletePlaylist(id);
         saveLibrary();
     }
+public Song getSongById(UUID id) {
+    return library.getMySongs()
+            .stream()
+            .filter(s -> s.getId().equals(id))
+            .findFirst()
+            .orElse(null);
+}
 
     /** Add a song (by id) to a playlist (by id), then persist. */
     public boolean addSongToPlaylist(UUID playlistId, UUID songId) {

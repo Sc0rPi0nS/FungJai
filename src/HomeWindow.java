@@ -13,6 +13,7 @@ public class HomeWindow {
     private transient MediaPlayer videoPlayer;
     private PlayerService playerService;
     private Song currentSong;
+    private Playlist currentPlaylist;
 
     private LibraryService libraryService;
 
@@ -50,7 +51,7 @@ public class HomeWindow {
         );
 
         // ⭐ pass libraryService so PlaylistWindow uses real Playlist objects
-        playlist.setOnAction(e -> new PlaylistWindow(libraryService).show(stage));
+        playlist.setOnAction(e -> new PlaylistWindow(this, libraryService).show(stage));
 
         HBox menuBar = new HBox(15, home, mySong, playlist, mix);
         menuBar.setAlignment(Pos.CENTER);
@@ -195,12 +196,12 @@ public class HomeWindow {
 
         next.setOnAction(e -> {
             Song s = playerService.next();
-            if (s != null) setSongInfo(s);
+            if (s != null) setSongInfo(s,currentPlaylist);
         });
 
         prev.setOnAction(e -> {
             Song s = playerService.previous();
-            if (s != null) setSongInfo(s);
+            if (s != null) setSongInfo(s,currentPlaylist);
         });
 
         shuffle.setOnAction(e -> {
@@ -267,21 +268,34 @@ public class HomeWindow {
     }
 
     // ================= EQ =================
-    private void setupSpectrum(MediaPlayer player) {
+ private void setupSpectrum(MediaPlayer player) {
 
-        player.setAudioSpectrumInterval(0.05);
-        player.setAudioSpectrumNumBands(32);
+    player.setAudioSpectrumInterval(0.05);
+    player.setAudioSpectrumNumBands(32);
 
-        player.setAudioSpectrumListener((t, d, mag, ph) -> {
-            for (int i = 0; i < mag.length; i++) {
+    player.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
+
+        javafx.application.Platform.runLater(() -> {
+
+            for (int i = 0; i < magnitudes.length && i < eqBars.getChildren().size(); i++) {
+
                 Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
-                double value = mag[i] + 60;
+
+                double value = magnitudes[i] + 60; // normalize
+
+                if (i > 12 && i < 25) {
+                    value *= 2;
+                }
+
                 double height = Math.max(5, value * 2);
+
                 bar.setScaleY(height / 20.0);
             }
-        });
-    }
 
+        });
+
+    });
+}
     private void updateProgressColor() {
 
         double percent = (progress.getValue() - progress.getMin())
@@ -296,53 +310,54 @@ public class HomeWindow {
             ));
         }
     }
+    
+    private void bindPlayer(MediaPlayer player) {
+
+    player.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
+
+        double seconds = newTime.toSeconds();
+
+        progress.setValue(seconds);
+
+        int min = (int) seconds / 60;
+        int sec = (int) seconds % 60;
+
+        time.setText(String.format("%02d:%02d", min, sec));
+
+        updateProgressColor();
+    });
+
+    player.setOnReady(() -> {
+        progress.setMax(player.getTotalDuration().toSeconds());
+    });
+}
 
     // ================= SET SONG =================
-    public void setSongInfo(Song song) {
+public void setSongInfo(Song song, Playlist playlist) {
+    
+    if (song == null) return;
 
-        if (song == null) return;
+    this.currentSong = song;
+    this.currentPlaylist = playlist;
 
-        this.currentSong = song;
-        this.song.setText(song.getTitle());
-        this.artist.setText(song.getArtist());
+    this.song.setText(song.getTitle());
+    this.artist.setText(song.getArtist());
 
-        playerService.playSong(song);
-        play.setText("⏸");
-
-        if (videoPlayer != null) videoPlayer.play();
-
-        MediaPlayer player = playerService.getMediaPlayer();
-
-        if (player != null) {
-
-            player.setVolume(volume.getValue());
-            setupSpectrum(player);
-
-            player.setOnReady(() -> {
-                double total = player.getTotalDuration().toSeconds();
-                progress.setMin(0);
-                progress.setMax(total);
-                progress.setValue(0);
-            });
-
-            player.currentTimeProperty().addListener((obs, oldT, newT) -> {
-                double current = newT.toSeconds();
-                if (!progress.isValueChanging()) {
-                    progress.setValue(current);
-                }
-                updateProgressColor();
-                int min = (int) current / 60;
-                int sec = (int) current % 60;
-                time.setText(String.format("%02d:%02d", min, sec));
-            });
-
-            player.setOnEndOfMedia(() -> {
-                Song nextSong = playerService.next();
-                if (nextSong != null) {
-                    setSongInfo(nextSong);
-                    play.setText("⏸");
-                }
-            });
-        }
+    if (playlist != null) {
+        playerService.setQueue(playlist);
     }
+    
+    playerService.playSong(song);
+
+    MediaPlayer player = song.getMediaPlayer(); // ⭐ ใช้ตัวนี้
+
+    setupSpectrum(player);
+    bindPlayer(player);
+
+    play.setText("⏸");
+}
+
+public PlayerService getPlayerService() {
+    return playerService;
+}
 }

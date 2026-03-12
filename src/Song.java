@@ -6,21 +6,31 @@ import java.io.Serializable;
 public class Song extends MediaItem implements Playable, Serializable {
 
     private String filePathMp3;
-    private MediaPlayer mediaPlayer;
+    private int durationSec;
+
+    private transient MediaPlayer mediaPlayer;
+
+    private static final long serialVersionUID = 1L;
 
     public Song(String title, String artist, String filePathMp3, int durationSec) {
         super(title, artist);
         this.filePathMp3 = filePathMp3;
+        this.durationSec = durationSec;
     }
 
     public MediaPlayer getMediaPlayer() {
+
         if (mediaPlayer == null) {
+
             Media media = new Media(new File(filePathMp3).toURI().toString());
+
             media.setOnError(() -> {
-    System.out.println(media.getError());
-});
+                System.out.println(media.getError());
+            });
+
             mediaPlayer = new MediaPlayer(media);
         }
+
         return mediaPlayer;
     }
 
@@ -41,10 +51,17 @@ public class Song extends MediaItem implements Playable, Serializable {
 
     @Override
     public int getDurationSrc() {
-        return 0;
+        return durationSec;
     }
-    
+
     public String getFilePathMp3(){
         return filePathMp3;
+    }
+
+    public void dispose() {
+        if (mediaPlayer != null) {
+            mediaPlayer.dispose();
+            mediaPlayer = null;
+        }
     }
 }

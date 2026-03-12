@@ -108,7 +108,15 @@ public MySongWindow(HomeWindow home, LibraryService libraryService) {
                             .orElse(null);
 
                     if (song != null) {
-                        home.setSongInfo(song);
+                        if (song != null) {
+
+    home.getPlayerService().playLibrary(
+            libraryService.getLibrary().getMySongs(),
+            song
+    );
+
+    home.setSongInfo(song, null);
+}
                     }
                 }
             });

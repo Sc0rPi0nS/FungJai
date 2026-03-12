@@ -96,5 +96,12 @@ public void addSong(Song song) {
         Objects.requireNonNull(mixId, "mixId must not be null");
         return mixForYou.stream().filter(m -> m.getId().equals(mixId)).findFirst();
     }
-    
+    public Song getSong(UUID id) {
+    for (Song song : mySongs) {
+        if (song.getId().equals(id)) {
+            return song;
+        }
+    }
+    return null;
+}
 }
