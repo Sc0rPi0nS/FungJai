@@ -53,6 +53,8 @@ public class HomeWindow {
 
         // ⭐ pass libraryService so PlaylistWindow uses real Playlist objects
         playlist.setOnAction(e -> new PlaylistWindow(this, libraryService).show(stage));
+        
+        mix.setOnAction(e -> new MixForYouWindow(this, libraryService).show(stage));
 
         HBox menuBar = new HBox(15, home, mySong, playlist, mix);
         menuBar.setAlignment(Pos.CENTER);
