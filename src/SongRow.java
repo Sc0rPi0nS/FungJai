@@ -31,4 +31,12 @@ public class SongRow {
     public String getFilePath() {
         return filePath;
     }
+    
+    public void setTitle(String title) {
+    this.title.set(title);
+}
+
+public void setArtist(String artist) {
+    this.artist.set(artist);
+}
 }

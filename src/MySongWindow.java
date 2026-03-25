@@ -60,8 +60,11 @@ public MySongWindow(HomeWindow home, LibraryService libraryService) {
                 });
 
                 edit.setOnAction(e -> {
-                    SongRow song = getTableView().getItems().get(getIndex());
-                });
+    SongRow row = getTableRow().getItem();
+    if (row != null) {
+        onEditSong(row);
+    }
+});
 
                 delete.setOnAction(e -> {
                     SongRow song = getTableView().getItems().get(getIndex());
@@ -136,14 +139,12 @@ public MySongWindow(HomeWindow home, LibraryService libraryService) {
 
         // ===== Buttons =====
         Button addBtn = new Button("Add");
-        Button editBtn = new Button("Edit");
-        Button deleteBtn = new Button("Delete");
 
         addBtn.setOnAction(e -> onAddSong());
         //editBtn.setOnAction(e -> onEditSong());
         //deleteBtn.setOnAction(e -> onDeleteSong());
 
-        HBox buttons = new HBox(10, addBtn, editBtn, deleteBtn);
+        HBox buttons = new HBox(10, addBtn);
         VBox root = new VBox(10, table, buttons);
 
         stage.setScene(new Scene(root, 600, 400));
@@ -163,6 +164,18 @@ public MySongWindow(HomeWindow home, LibraryService libraryService) {
 
         TextField artistField = new TextField();
         artistField.setPromptText("Artist");
+        
+        titleField.textProperty().addListener((obs, oldVal, newVal) -> {
+    if (newVal.contains(" ")) {
+        titleField.setText(newVal.replace(" ", "-"));
+    }
+});
+
+artistField.textProperty().addListener((obs, oldVal, newVal) -> {
+    if (newVal.contains(" ")) {
+        artistField.setText(newVal.replace(" ", "-"));
+    }
+});
 
         Label fileLabel = new Label("No file selected");
 
@@ -231,4 +244,68 @@ public MySongWindow(HomeWindow home, LibraryService libraryService) {
         popup.show();
     }
 
+    private void onEditSong(SongRow row) {
+
+    // หา Song จริง
+    Song song = libraryService.getLibrary()
+            .getMySongs()
+            .stream()
+            .filter(s -> s.getId().equals(row.getId()))
+            .findFirst()
+            .orElse(null);
+
+    if (song == null) return;
+
+    Stage popup = new Stage();
+    popup.setTitle("Edit Song");
+
+    TextField titleField = new TextField(song.getTitle());
+    TextField artistField = new TextField(song.getArtist());
+    titleField.textProperty().addListener((obs, oldVal, newVal) -> {
+    if (newVal.contains(" ")) {
+        titleField.setText(newVal.replace(" ", "-"));
+    }
+});
+
+artistField.textProperty().addListener((obs, oldVal, newVal) -> {
+    if (newVal.contains(" ")) {
+        artistField.setText(newVal.replace(" ", "-"));
+    }
+});
+
+    Button saveBtn = new Button("Save");
+
+    saveBtn.setOnAction(e -> {
+
+        String newTitle = titleField.getText();
+        String newArtist = artistField.getText();
+
+        if (!newTitle.isEmpty() && !newArtist.isEmpty()) {
+
+            // ✅ update ตัว Song จริง
+            song.setTitle(newTitle);
+            song.setArtist(newArtist);
+
+            // ✅ update Table (SongRow)
+            row.setTitle(newTitle);
+            row.setArtist(newArtist);
+
+            // refresh table
+            table.refresh();
+
+            popup.close();
+        }
+    });
+
+    VBox layout = new VBox(10,
+            new Label("Title"), titleField,
+            new Label("Artist"), artistField,
+            saveBtn
+    );
+
+    layout.setStyle("-fx-padding:20;");
+
+    popup.setScene(new Scene(layout, 300, 200));
+    popup.show();
+}
 }
