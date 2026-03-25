@@ -28,6 +28,8 @@ public class HomeWindow {
 
     private Button play;
 
+    private About aboutWindow;
+
     public void show(Stage stage) {
 
         libraryService = new LibraryService();
@@ -55,7 +57,16 @@ public class HomeWindow {
         playlist.setOnAction(e -> new PlaylistWindow(this, libraryService).show(stage));
         mix.setOnAction(e-> new MixForYouWindow(this,libraryService).show(stage));
 
-        HBox menuBar = new HBox(15, home, mySong, playlist, mix);
+        // ℹ About button
+        Button info = infoBtn();
+        info.setOnAction(e -> {
+            if (aboutWindow == null) {
+                aboutWindow = new About();
+            }
+            aboutWindow.show(stage.getX(), stage.getY(), stage.getWidth());
+        });
+
+        HBox menuBar = new HBox(15, home, mySong, playlist, mix, info);
         menuBar.setAlignment(Pos.CENTER);
         menuBar.setPadding(new Insets(4));
         menuBar.setStyle(
@@ -361,5 +372,40 @@ public void setSongInfo(Song song, Playlist playlist) {
 
 public PlayerService getPlayerService() {
     return playerService;
+}
+
+// ================= INFO BUTTON =================
+private Button infoBtn() {
+    Button b = new Button("ℹ");
+    b.setPrefWidth(32);
+    b.setPrefHeight(32);
+    b.setStyle(
+        "-fx-background-color: transparent;" +
+        "-fx-font-size: 16px;" +
+        "-fx-font-weight: bold;" +
+        "-fx-text-fill: #444;" +
+        "-fx-cursor: hand;" +
+        "-fx-border-color: transparent;" +
+        "-fx-background-radius: 50%;"
+    );
+    b.setOnMouseEntered(e -> b.setStyle(
+        "-fx-background-color: #4773a1;" +
+        "-fx-font-size: 16px;" +
+        "-fx-font-weight: bold;" +
+        "-fx-text-fill: white;" +
+        "-fx-cursor: hand;" +
+        "-fx-border-color: transparent;" +
+        "-fx-background-radius: 50%;"
+    ));
+    b.setOnMouseExited(e -> b.setStyle(
+        "-fx-background-color: transparent;" +
+        "-fx-font-size: 16px;" +
+        "-fx-font-weight: bold;" +
+        "-fx-text-fill: #444;" +
+        "-fx-cursor: hand;" +
+        "-fx-border-color: transparent;" +
+        "-fx-background-radius: 50%;"
+    ));
+    return b;
 }
 }
