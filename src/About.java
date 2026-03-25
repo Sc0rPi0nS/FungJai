@@ -275,7 +275,42 @@ public class About {
         desktopPane.add(thankYou, JLayeredPane.DEFAULT_LAYER);
 
         winFrame.add(desktopPane, BorderLayout.CENTER);
-        winFrame.setLocationRelativeTo(null); 
+        // ไม่ setLocationRelativeTo และไม่ setVisible ที่นี่
+        // ให้ show() จัดตำแหน่งและแสดงหน้าต่างแทน
+    }
+
+    /**
+     * เปิดหน้า About ข้างๆ หน้าต่างหลัก (HomeWindow)
+     * ถ้าเรียกซ้ำขณะที่หน้าต่างเปิดอยู่แล้ว จะ bring to front แทน
+     *
+     * @param ownerX  ค่า X ของหน้าต่าง HomeWindow  (stage.getX())
+     * @param ownerY  ค่า Y ของหน้าต่าง HomeWindow  (stage.getY())
+     * @param ownerW  ความกว้างของ HomeWindow        (stage.getWidth())
+     */
+    public void show(double ownerX, double ownerY, double ownerW) {
+        if (winFrame == null) {
+            initFonts();
+            initComponents();
+            setupWindow();
+        }
+
+        if (winFrame.isVisible()) {
+            winFrame.toFront();
+            winFrame.requestFocus();
+            return;
+        }
+
+        // วางตำแหน่งข้างขวาของ HomeWindow
+        int aboutX = (int) (ownerX + ownerW + 10);
+        int aboutY = (int) ownerY;
+
+        // ถ้าออกนอกจอให้เลื่อนมาทางซ้ายแทน
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        if (aboutX + winFrame.getWidth() > screen.width) {
+            aboutX = (int) (ownerX - winFrame.getWidth() - 10);
+        }
+
+        winFrame.setLocation(aboutX, aboutY);
         winFrame.setVisible(true);
     }
 
@@ -285,9 +320,5 @@ public class About {
         label.setForeground(color);
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
         return label;
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new About());
     }
 }
