@@ -26,6 +26,27 @@ public class LibraryService {
         library.removeSong(id);
         saveLibrary();
     }
+    
+// Call this to update the song and trigger the forced save
+    public void updateSong(UUID id, String newTitle, String newArtist) {
+        Song song = getSongById(id);
+        if (song != null) {
+            song.setTitle(newTitle);
+            song.setArtist(newArtist);
+            forceSave(); 
+        }
+    }
+
+    // A bulletproof save method that reports errors to the console
+    public void forceSave() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(LIBRARY_FILE))) {
+            out.writeObject(library);
+            System.out.println("✅ Library successfully saved to disk!");
+        } catch (Exception e) {
+            System.out.println("❌ ERROR SAVING LIBRARY:");
+            e.printStackTrace();
+        }
+    }
 
     // ── Playlists ─────────────────────────────────────────────
     public java.util.List<Playlist> getPlaylists() {

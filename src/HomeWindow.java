@@ -430,75 +430,79 @@ private void showMiniPlayer(Stage mainStage) {
     miniTitle.setStyle("-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;");
     miniArtist.setStyle("-fx-font-size:10px; -fx-text-fill:#4773a1;");
 
+    // Fix: Stop JavaFX from shrinking labels to "..." so marquee works
+    miniTitle.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+    miniArtist.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+
     // ================= MARQUEE: TITLE =================
     StackPane titleClip = new StackPane(miniTitle);
-    titleClip.setMaxWidth(200);
-    titleClip.setPrefWidth(200);
+    // Fix: Lock the exact width so it doesn't push the buttons away
+    titleClip.setMinSize(220, 22); 
+    titleClip.setMaxSize(220, 22);
     titleClip.setAlignment(Pos.CENTER_LEFT);
-    titleClip.setClip(new Rectangle(160, 20));
+    titleClip.setClip(new Rectangle(220, 22));
 
     javafx.animation.TranslateTransition marquee = new javafx.animation.TranslateTransition();
     marquee.setNode(miniTitle);
     marquee.setCycleCount(javafx.animation.Animation.INDEFINITE);
     marquee.setAutoReverse(false);
 
-    titleClip.layoutBoundsProperty().addListener((obs, o, n) -> {
+    Runnable startTitleMarquee = () -> {
         double textWidth = miniTitle.prefWidth(-1);
-        if (textWidth > 160) {
-            double dist = textWidth - 150;
-            marquee.stop();
-            miniTitle.setTranslateX(0);
+        marquee.stop();
+        miniTitle.setTranslateX(0);
+        
+        // If text is wider than our 220px box (or you can use miniTitle.getText().length() > 15)
+        if (textWidth > 220) {
+            double dist = textWidth - 180; // Calculate scroll distance
             marquee.setFromX(0);
             marquee.setToX(-dist);
-            marquee.setDuration(javafx.util.Duration.seconds(dist / 30.0));
+            marquee.setDuration(javafx.util.Duration.seconds(dist / 40.0));
             marquee.play();
-        } else {
-            marquee.stop();
-            miniTitle.setTranslateX(0);
         }
-    });
+    };
+    miniTitle.widthProperty().addListener((obs, o, n) -> startTitleMarquee.run());
 
     // ================= MARQUEE: ARTIST =================
     StackPane artistClip = new StackPane(miniArtist);
-    artistClip.setMaxWidth(200);
-    artistClip.setPrefWidth(200);
+    // Fix: Lock the exact width so it doesn't push the buttons away
+    artistClip.setMinSize(220, 18);
+    artistClip.setMaxSize(220, 18);
     artistClip.setAlignment(Pos.CENTER_LEFT);
-    artistClip.setClip(new Rectangle(160, 18));
+    artistClip.setClip(new Rectangle(220, 18));
 
     javafx.animation.TranslateTransition marqueeArtist = new javafx.animation.TranslateTransition();
     marqueeArtist.setNode(miniArtist);
     marqueeArtist.setCycleCount(javafx.animation.Animation.INDEFINITE);
     marqueeArtist.setAutoReverse(false);
 
-    artistClip.layoutBoundsProperty().addListener((obs, o, n) -> {
+    Runnable startArtistMarquee = () -> {
         double textWidth = miniArtist.prefWidth(-1);
-        if (textWidth > 160) {
-            double dist = textWidth - 150;
-            marqueeArtist.stop();
-            miniArtist.setTranslateX(0);
+        marqueeArtist.stop();
+        miniArtist.setTranslateX(0);
+        if (textWidth > 220) {
+            double dist = textWidth - 180;
             marqueeArtist.setFromX(0);
             marqueeArtist.setToX(-dist);
-            marqueeArtist.setDuration(javafx.util.Duration.seconds(dist / 30.0));
+            marqueeArtist.setDuration(javafx.util.Duration.seconds(dist / 40.0));
             marqueeArtist.play();
-        } else {
-            marqueeArtist.stop();
-            miniArtist.setTranslateX(0);
         }
-    });
+    };
+    miniArtist.widthProperty().addListener((obs, o, n) -> startArtistMarquee.run());
 
     // ================= PROGRESS BAR =================
     Slider miniProgress = new Slider();
     miniProgress.setMin(progress.getMin());
     miniProgress.setMax(progress.getMax() > 0 ? progress.getMax() : 100);
     miniProgress.setValue(progress.getValue());
-    miniProgress.setPrefWidth(300);
+    miniProgress.setPrefWidth(310);
     miniProgress.setPrefHeight(6);
     miniProgress.setStyle("-fx-control-inner-background:#cccccc;");
 
     // Sync main → mini + อัปเดตสี
     progress.valueProperty().addListener((obs, o, n) -> {
         miniProgress.setValue(n.doubleValue());
-        updateMiniProgressColor(miniProgress); // ✅ เรียกทุกครั้ง
+        updateMiniProgressColor(miniProgress);
     });
     progress.maxProperty().addListener((obs, o, n) ->
         miniProgress.setMax(n.doubleValue())
@@ -533,13 +537,15 @@ private void showMiniPlayer(Stage mainStage) {
         "-fx-background-radius:4;" +
         "-fx-padding:2 6 2 6;";
 
-    Button miniPrev    = new Button("⏮");
-    Button miniPlayBtn = new Button(playerService.isPlaying() ? "⏸" : "▶");
-    Button miniNext    = new Button("⏭");
-    Button miniRestore = new Button("⬆");
+    Button miniPrev    = new Button("<");
+    Button miniPlayBtn = new Button(playerService.isPlaying() ? "||" : "▶");
+    Button miniNext    = new Button(">");
+    Button miniRestore = new Button("↑");
 
     for (Button b : new Button[]{miniPrev, miniPlayBtn, miniNext, miniRestore}) {
         b.setStyle(btnStyle);
+        // Fix: Stop JavaFX from squishing buttons into "..."
+        b.setMinSize(Button.USE_PREF_SIZE, Button.USE_PREF_SIZE);
         b.setOnMouseEntered(e -> b.setStyle(btnHover));
         b.setOnMouseExited (e -> b.setStyle(btnStyle));
     }
@@ -548,8 +554,8 @@ private void showMiniPlayer(Stage mainStage) {
     miniPlayBtn.setOnAction(e -> {
         playerService.togglePlayPause();
         boolean playing = playerService.isPlaying();
-        miniPlayBtn.setText(playing ? "⏸" : "▶");
-        play.setText(playing ? "⏸" : "▶");
+        miniPlayBtn.setText(playing ? "||" : "▶");
+        play.setText(playing ? "||" : "▶");
         if (videoPlayer != null) {
             if (playing) videoPlayer.play(); else videoPlayer.pause();
         }
@@ -561,7 +567,6 @@ private void showMiniPlayer(Stage mainStage) {
         marqueeArtist.stop();
         miniTitle.setTranslateX(0);
         miniArtist.setTranslateX(0);
-        // layoutBoundsProperty listener จะเริ่ม animation เองหลัง setText
     };
 
     // Next
@@ -594,19 +599,20 @@ private void showMiniPlayer(Stage mainStage) {
     // ================= LAYOUT =================
     HBox controls = new HBox(6, miniPrev, miniPlayBtn, miniNext, miniRestore);
     controls.setAlignment(Pos.CENTER_RIGHT);
+    // Fix: Protect the controls box from being squeezed by the song title
+    controls.setMinWidth(Region.USE_PREF_SIZE);
 
-    VBox songInfo = new VBox(2, titleClip, artistClip); // ✅ ใช้ clip แทน label ตรงๆ
+    VBox songInfo = new VBox(2, titleClip, artistClip);
 
     Region spacer = new Region();
     HBox.setHgrow(spacer, Priority.ALWAYS);
 
-HBox topRow = new HBox(10, songInfo, new Region(), controls);
-topRow.setAlignment(Pos.CENTER_LEFT);
-HBox.setHgrow(topRow.getChildren().get(1), Priority.ALWAYS);
+    HBox topRow = new HBox(10, songInfo, spacer, controls);
+    topRow.setAlignment(Pos.CENTER_LEFT);
 
     VBox layout = new VBox(8, topRow, miniProgress);
     layout.setPadding(new Insets(12, 14, 12, 14));
-    layout.setPrefWidth(270);
+    layout.setPrefWidth(340);
     layout.setStyle(
         "-fx-background-color: #f0f4fa;" +
         "-fx-border-color: #4773a1;" +
@@ -618,8 +624,8 @@ HBox.setHgrow(topRow.getChildren().get(1), Priority.ALWAYS);
 
     // ================= POSITION & SHOW =================
     Rectangle2D screen = javafx.stage.Screen.getPrimary().getVisualBounds();
-    miniStage.setX(screen.getMaxX() - 290);
-    miniStage.setY(screen.getMaxY() - 110);
+    miniStage.setX(screen.getMaxX() - 370);
+    miniStage.setY(screen.getMaxY() - 120);
 
     miniStage.setScene(new Scene(layout));
     miniStage.setAlwaysOnTop(true);

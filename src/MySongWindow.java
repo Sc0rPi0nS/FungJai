@@ -17,10 +17,10 @@ public class MySongWindow {
     private TableView<SongRow> table;
     private ObservableList<SongRow> tableData;
 
-public MySongWindow(HomeWindow home, LibraryService libraryService) {
-    this.home = home;
-    this.libraryService = libraryService;
-}
+    public MySongWindow(HomeWindow home, LibraryService libraryService) {
+        this.home = home;
+        this.libraryService = libraryService;
+    }
 
     public void show(Stage owner) {
         Stage stage = new Stage();
@@ -60,11 +60,11 @@ public MySongWindow(HomeWindow home, LibraryService libraryService) {
                 });
 
                 edit.setOnAction(e -> {
-    SongRow row = getTableRow().getItem();
-    if (row != null) {
-        onEditSong(row);
-    }
-});
+                    SongRow row = getTableRow().getItem();
+                    if (row != null) {
+                        onEditSong(row);
+                    }
+                });
 
                 delete.setOnAction(e -> {
                     SongRow song = getTableView().getItems().get(getIndex());
@@ -113,13 +113,13 @@ public MySongWindow(HomeWindow home, LibraryService libraryService) {
                     if (song != null) {
                         if (song != null) {
 
-    home.getPlayerService().playLibrary(
-            libraryService.getLibrary().getMySongs(),
-            song
-    );
+                            home.getPlayerService().playLibrary(
+                                    libraryService.getLibrary().getMySongs(),
+                                    song
+                            );
 
-    home.setSongInfo(song, null);
-}
+                            home.setSongInfo(song, null);
+                        }
                     }
                 }
             });
@@ -164,18 +164,18 @@ public MySongWindow(HomeWindow home, LibraryService libraryService) {
 
         TextField artistField = new TextField();
         artistField.setPromptText("Artist");
-        
-        titleField.textProperty().addListener((obs, oldVal, newVal) -> {
-    if (newVal.contains(" ")) {
-        titleField.setText(newVal.replace(" ", "-"));
-    }
-});
 
-artistField.textProperty().addListener((obs, oldVal, newVal) -> {
-    if (newVal.contains(" ")) {
-        artistField.setText(newVal.replace(" ", "-"));
-    }
-});
+        titleField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.contains(" ")) {
+                titleField.setText(newVal.replace(" ", "-"));
+            }
+        });
+
+        artistField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.contains(" ")) {
+                artistField.setText(newVal.replace(" ", "-"));
+            }
+        });
 
         Label fileLabel = new Label("No file selected");
 
@@ -246,66 +246,68 @@ artistField.textProperty().addListener((obs, oldVal, newVal) -> {
 
     private void onEditSong(SongRow row) {
 
-    // หา Song จริง
-    Song song = libraryService.getLibrary()
-            .getMySongs()
-            .stream()
-            .filter(s -> s.getId().equals(row.getId()))
-            .findFirst()
-            .orElse(null);
+        // หา Song จริง
+        Song song = libraryService.getLibrary()
+                .getMySongs()
+                .stream()
+                .filter(s -> s.getId().equals(row.getId()))
+                .findFirst()
+                .orElse(null);
 
-    if (song == null) return;
-
-    Stage popup = new Stage();
-    popup.setTitle("Edit Song");
-
-    TextField titleField = new TextField(song.getTitle());
-    TextField artistField = new TextField(song.getArtist());
-    titleField.textProperty().addListener((obs, oldVal, newVal) -> {
-    if (newVal.contains(" ")) {
-        titleField.setText(newVal.replace(" ", "-"));
-    }
-});
-
-artistField.textProperty().addListener((obs, oldVal, newVal) -> {
-    if (newVal.contains(" ")) {
-        artistField.setText(newVal.replace(" ", "-"));
-    }
-});
-
-    Button saveBtn = new Button("Save");
-
-    saveBtn.setOnAction(e -> {
-
-        String newTitle = titleField.getText();
-        String newArtist = artistField.getText();
-
-        if (!newTitle.isEmpty() && !newArtist.isEmpty()) {
-
-            // ✅ update ตัว Song จริง
-            song.setTitle(newTitle);
-            song.setArtist(newArtist);
-
-            // ✅ update Table (SongRow)
-            row.setTitle(newTitle);
-            row.setArtist(newArtist);
-
-            // refresh table
-            table.refresh();
-
-            popup.close();
+        if (song == null) {
+            return;
         }
-    });
 
-    VBox layout = new VBox(10,
-            new Label("Title"), titleField,
-            new Label("Artist"), artistField,
-            saveBtn
-    );
+        Stage popup = new Stage();
+        popup.setTitle("Edit Song");
 
-    layout.setStyle("-fx-padding:20;");
+        TextField titleField = new TextField(song.getTitle());
+        TextField artistField = new TextField(song.getArtist());
+        titleField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.contains(" ")) {
+                titleField.setText(newVal.replace(" ", "-"));
+            }
+        });
 
-    popup.setScene(new Scene(layout, 300, 200));
-    popup.show();
-}
+        artistField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.contains(" ")) {
+                artistField.setText(newVal.replace(" ", "-"));
+            }
+        });
+
+        Button saveBtn = new Button("Save");
+
+        saveBtn.setOnAction(e -> {
+
+            String newTitle = titleField.getText();
+            String newArtist = artistField.getText();
+
+            if (!newTitle.isEmpty() && !newArtist.isEmpty()) {
+
+                // ✅ update ตัว Song จริง
+                song.setTitle(newTitle);
+                song.setArtist(newArtist);
+
+                // ✅ update Table (SongRow)
+                row.setTitle(newTitle);
+                row.setArtist(newArtist);
+
+                // refresh table
+                table.refresh();
+
+                popup.close();
+            }
+        });
+
+        VBox layout = new VBox(10,
+                new Label("Title"), titleField,
+                new Label("Artist"), artistField,
+                saveBtn
+        );
+
+        layout.setStyle("-fx-padding:20;");
+
+        popup.setScene(new Scene(layout, 300, 200));
+        popup.show();
+    }
 }

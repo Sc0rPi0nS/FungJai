@@ -31,21 +31,19 @@ public class PlaylistWindow {
     private static final String C_LABEL = "#3a5068";
 
     // ── state ─────────────────────────────────────────────────
-    private HomeWindow home; 
+    private HomeWindow home;
     private LibraryService libraryService;
     private ObservableList<Playlist> playlists = FXCollections.observableArrayList();
-    
 
-public PlaylistWindow(HomeWindow home, LibraryService libraryService) {
-    this.home = home;
-    this.libraryService = libraryService;
-    this.playlists = FXCollections.observableArrayList();
-    
-}
+    public PlaylistWindow(HomeWindow home, LibraryService libraryService) {
+        this.home = home;
+        this.libraryService = libraryService;
+        this.playlists = FXCollections.observableArrayList();
+
+    }
 
     // keep old no-arg constructor so HomeWindow still compiles,
     // but it won't have a libraryService — we guard against null below
-
     // ── entry ─────────────────────────────────────────────────
     public void show(Stage owner) {
         Stage stage = new Stage();
@@ -320,36 +318,35 @@ public PlaylistWindow(HomeWindow home, LibraryService libraryService) {
 
         TableColumn<SongRow, String> artistCol = new TableColumn<>("Artist");
         artistCol.setCellValueFactory(d -> d.getValue().artistProperty());
-table.setRowFactory(tv -> {
-    TableRow<SongRow> row = new TableRow<>();
+        table.setRowFactory(tv -> {
+            TableRow<SongRow> row = new TableRow<>();
 
-    row.setOnMouseClicked(event -> {
-        if (!row.isEmpty() && event.getClickCount() == 2) {
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getClickCount() == 2) {
 
-            SongRow rowData = row.getItem();
+                    SongRow rowData = row.getItem();
 
-            if (rowData != null && home != null) {
+                    if (rowData != null && home != null) {
 
-Song song = libraryService.getSongById(rowData.getId());
+                        Song song = libraryService.getSongById(rowData.getId());
 
-if (song != null && home != null) {
+                        if (song != null && home != null) {
 
-    int index = playlist.getSongs().indexOf(song);
-    home.getPlayerService().clearQueue();
-    home.getPlayerService().playPlaylist(
-            playlist,
-            index
-    );
+                            int index = playlist.getSongs().indexOf(song);
+                            home.getPlayerService().clearQueue();
+                            home.getPlayerService().playPlaylist(
+                                    playlist,
+                                    index
+                            );
 
-    home.setSongInfo(song, playlist);
-}
-            }
-        }
-    });
+                            home.setSongInfo(song, playlist);
+                        }
+                    }
+                }
+            });
 
-    return row;
-});
-
+            return row;
+        });
 
         TableColumn<SongRow, Void> actCol = new TableColumn<>("");
         actCol.setMinWidth(50);
@@ -433,23 +430,23 @@ if (song != null && home != null) {
             }
 
             boolean added = libraryService.addSongToPlaylist(playlist.getId(), selected.getId());
-if (added) {
+            if (added) {
 
-    // update UI
-    rows.add(selected);
-    available.remove(selected);
+                // update UI
+                rows.add(selected);
+                available.remove(selected);
 
-    // update playlist object in this window
-    Song song = libraryService.getLibrary().getMySongs()
-            .stream()
-            .filter(s -> s.getId().equals(selected.getId()))
-            .findFirst()
-            .orElse(null);
+                // update playlist object in this window
+                Song song = libraryService.getLibrary().getMySongs()
+                        .stream()
+                        .filter(s -> s.getId().equals(selected.getId()))
+                        .findFirst()
+                        .orElse(null);
 
-    if (song != null) {
-        playlist.addSong(song);
-    }
-}
+                if (song != null) {
+                    playlist.addSong(song);
+                }
+            }
         });
 
         VBox body = new VBox(8, new Label("Select a song from your library:"), picker);
