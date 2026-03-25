@@ -1,14 +1,13 @@
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.util.ArrayList;
+import javax.swing.table.*;
 
 public class About {
     private JFrame winFrame;
     private JDesktopPane desktopPane;
-    private ArrayList<String> memberList;
     
-    //Attribute สำหรับ JTable ตรงนี้ ---
+    //Attribute JTable
     private final String[] columnNames = {"Student ID", "Name"};
     private final Object[][] memberData = {
         {"68070023", "Chanawat Paenkhong"},
@@ -156,53 +155,72 @@ public class About {
         desktopPane.add(headerTextPanel, JLayeredPane.DEFAULT_LAYER);
 
         //JInternalFrame Prepared by
-        JInternalFrame memberFrame = new JInternalFrame("Prepared by", true, true, true, true);
-        JPanel memberPanel = new JPanel(new BorderLayout());
+        JInternalFrame memberFrame = new JInternalFrame("Prepared by", false, false, false, false);
+        JPanel memberPanel = new JPanel(new BorderLayout(0, 10));
         memberPanel.setBackground(PANEL_BG);
         memberPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
+        
         JPanel topPrepPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         topPrepPanel.setBackground(PANEL_BG);
         topPrepPanel.add(lblPrepared);
         memberPanel.add(topPrepPanel, BorderLayout.NORTH);
 
-        JPanel gridPanel = new JPanel(new GridLayout(0, 2, 20, 10)); 
-        gridPanel.setBackground(PANEL_BG);
-        gridPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+                //JTable Attribute
+        DefaultTableModel tableModel = new DefaultTableModel(memberData, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
 
-        memberList = new ArrayList<>();
-        memberList.add("(68070023) - Chanawat Paenkhong");
-        memberList.add("(68070061) - Thanawit Wanthong");
-        memberList.add("(68070080) - Narawit Lueangprasoet");
-        memberList.add("(68070091) - Bunyapol Mekcharoenviwattana");
-        memberList.add("(68070113) - Phacharaphol Jaroen");
-        memberList.add("(68070151) - Matawin Chortchuang");
-        memberList.add("(68070164) - Wachirawit Anusunchanang");
-        memberList.add("(68070175) - Weerachai Lorpa");
-        memberList.add("(68070208) - Inthuch Thipwet");
+        JTable memberTable = new JTable(tableModel);
+        memberTable.setFont(mainFont.deriveFont(14f));
+        memberTable.setForeground(TEXT_DARK);
+        memberTable.setBackground(PANEL_BG);
+        memberTable.setRowHeight(25); 
+        memberTable.setShowGrid(true);
+        memberTable.setGridColor(new Color(230, 230, 230)); 
+        memberTable.setSelectionBackground(ACCENT_COLOR);
+        memberTable.setSelectionForeground(Color.WHITE);
 
-        for (String name : memberList) {
-            gridPanel.add(createLabel("• " + name, mainFont.deriveFont(14f), TEXT_DARK));
-        }
+        JTableHeader header = memberTable.getTableHeader();
+        header.setFont(mainFont.deriveFont(Font.BOLD, 15f));
+        header.setBackground(new Color(240, 240, 240));
+        header.setForeground(ACCENT_COLOR);
+        DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) header.getDefaultRenderer();
+        headerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        memberTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        memberTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+        memberTable.getColumnModel().getColumn(0).setMaxWidth(200);
+
+        JPanel tableContainer = new JPanel(new BorderLayout());
+        tableContainer.setBackground(PANEL_BG);
+        tableContainer.add(memberTable.getTableHeader(), BorderLayout.NORTH);
+        tableContainer.add(memberTable, BorderLayout.CENTER);
+        tableContainer.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
 
         JPanel instPanel = new JPanel();
         instPanel.setLayout(new BoxLayout(instPanel, BoxLayout.Y_AXIS));
         instPanel.setBackground(PANEL_BG);
-        instPanel.setBorder(new EmptyBorder(20, 10, 10, 10));
+        instPanel.setBorder(new EmptyBorder(10, 10, 0, 10));
         facultyName.setAlignmentX(Component.CENTER_ALIGNMENT);
         uniName.setAlignmentX(Component.CENTER_ALIGNMENT);
         instPanel.add(facultyName);
         instPanel.add(uniName);
 
-        memberPanel.add(gridPanel, BorderLayout.CENTER);
+        memberPanel.add(tableContainer, BorderLayout.CENTER);
         memberPanel.add(instPanel, BorderLayout.SOUTH);
         
         memberFrame.add(memberPanel);
-        memberFrame.setBounds(130, 140, 720, 280); 
+        memberFrame.setBounds(30, 140, 450, 575);
         memberFrame.setVisible(true);
         desktopPane.add(memberFrame);
 
         //JInternalFrame Library
-        JInternalFrame libFrame = new JInternalFrame("Libraries", true, true, true, true);
+        JInternalFrame libFrame = new JInternalFrame("Libraries", false, false, false, false);
         JPanel libInner = new JPanel();
         libInner.setLayout(new BoxLayout(libInner, BoxLayout.Y_AXIS));
         libInner.setBackground(PANEL_BG);
@@ -224,12 +242,12 @@ public class About {
         libInner.add(libStdDesc);
         
         libFrame.add(libInner);
-        libFrame.setBounds(30, 435, 450, 280);
+        libFrame.setBounds(500, 140, 450, 280);
         libFrame.setVisible(true);
         desktopPane.add(libFrame);
 
         //JInternalFrame Feature
-        JInternalFrame featFrame = new JInternalFrame("Features", true, true, true, true);
+        JInternalFrame featFrame = new JInternalFrame("Features", false, false, false, false);
         JPanel featInner = new JPanel();
         featInner.setLayout(new BoxLayout(featInner, BoxLayout.Y_AXIS));
         featInner.setBackground(PANEL_BG);
