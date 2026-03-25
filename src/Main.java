@@ -1,11 +1,16 @@
+
 import javafx.application.Application;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-     HomeWindow home = new HomeWindow();
+        stage.getIcons().add(
+                new Image(getClass().getResource("/pictures/nnine.png").toExternalForm())
+        );
+        HomeWindow home = new HomeWindow();
         home.show(stage);
     }
 
