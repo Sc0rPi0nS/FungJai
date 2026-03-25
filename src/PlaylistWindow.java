@@ -422,32 +422,20 @@ public class PlaylistWindow {
         Button btnCancel = flatBtn("Cancel");
         btnCancel.setOnAction(e -> dlg.close());
 
-        btnAdd.setOnAction(e -> {
-            SongRow selected = picker.getSelectionModel().getSelectedItem();
-            if (selected == null) {
-                alert("Please select a song.");
-                return;
-            }
+ btnAdd.setOnAction(e -> {
+    SongRow selected = picker.getSelectionModel().getSelectedItem();
+    if (selected == null) {
+        alert("Please select a song.");
+        return;
+    }
 
-            boolean added = libraryService.addSongToPlaylist(playlist.getId(), selected.getId());
-            if (added) {
+    boolean added = libraryService.addSongToPlaylist(playlist.getId(), selected.getId());
+    if (added) {
+        rows.add(selected);
+        available.remove(selected);
+    }
+});
 
-                // update UI
-                rows.add(selected);
-                available.remove(selected);
-
-                // update playlist object in this window
-                Song song = libraryService.getLibrary().getMySongs()
-                        .stream()
-                        .filter(s -> s.getId().equals(selected.getId()))
-                        .findFirst()
-                        .orElse(null);
-
-                if (song != null) {
-                    playlist.addSong(song);
-                }
-            }
-        });
 
         VBox body = new VBox(8, new Label("Select a song from your library:"), picker);
         body.setPadding(new Insets(14));
