@@ -38,7 +38,6 @@ public class HomeWindow {
         playerService = new PlayerService(
                 libraryService.getLibrary().getAllSongs()
         );
-        
 
         BorderPane root = new BorderPane();
         root.setPrefSize(500, 450);
@@ -50,13 +49,13 @@ public class HomeWindow {
         Button playlist = menuBtn("MYPLAYLIST", false);
         Button mix = menuBtn("MIXFORYOU", false);
 
-        mySong.setOnAction(e ->
-                new MySongWindow(this, libraryService).show(stage)
+        mySong.setOnAction(e
+                -> new MySongWindow(this, libraryService).show(stage)
         );
 
         // ⭐ pass libraryService so PlaylistWindow uses real Playlist objects
         playlist.setOnAction(e -> new PlaylistWindow(this, libraryService).show(stage));
-        mix.setOnAction(e-> new MixForYouWindow(this,libraryService).show(stage));
+        mix.setOnAction(e -> new MixForYouWindow(this, libraryService).show(stage));
 
         // ℹ About button
         Button info = infoBtn();
@@ -78,9 +77,7 @@ public class HomeWindow {
         root.setTop(menuBar);
 
         // ================= CENTER =================
-        URL videoUrl = getClass().getResource("/pictures/nineza123.mp4");
-
-        // ⭐ Only load video if file actually exists — no crash if missing
+        URL videoUrl = getClass().getResource("/pictures/tape.mp4");
         MediaView videoView = new MediaView();
         videoView.setFitWidth(370);
         videoView.setFitHeight(200);
@@ -97,8 +94,8 @@ public class HomeWindow {
             videoPlayer.setMute(true);
             videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
             videoView.setMediaPlayer(videoPlayer);
-            videoPlayer.setOnReady(() ->
-                    videoView.setViewport(new Rectangle2D(200, 100, 1500, 900))
+            videoPlayer.setOnReady(()
+                    -> videoView.setViewport(new Rectangle2D(200, 100, 1500, 900))
             );
         }
 
@@ -195,27 +192,37 @@ public class HomeWindow {
         // ================= BUTTON EVENTS =================
         play.setOnAction(e -> {
 
-            if (playerService.getCurrentSong() == null) return;
+            if (playerService.getCurrentSong() == null) {
+                return;
+            }
 
             playerService.togglePlayPause();
 
             if (playerService.isPlaying()) {
                 play.setText("⏸");
-                if (videoPlayer != null) videoPlayer.play();
+                if (videoPlayer != null) {
+                    videoPlayer.play();
+                }
             } else {
                 play.setText("▶");
-                if (videoPlayer != null) videoPlayer.pause();
+                if (videoPlayer != null) {
+                    videoPlayer.pause();
+                }
             }
         });
 
         next.setOnAction(e -> {
             Song s = playerService.next();
-            if (s != null) setSongInfo(s,currentPlaylist);
+            if (s != null) {
+                setSongInfo(s, currentPlaylist);
+            }
         });
 
         prev.setOnAction(e -> {
             Song s = playerService.previous();
-            if (s != null) setSongInfo(s,currentPlaylist);
+            if (s != null) {
+                setSongInfo(s, currentPlaylist);
+            }
         });
 
         shuffle.setOnAction(e -> {
@@ -263,12 +270,14 @@ public class HomeWindow {
         stage.setResizable(false);
         stage.show();
         stage.iconifiedProperty().addListener((obs, wasMin, isNow) -> {
-    if (isNow) {
-        showMiniPlayer(stage);
-    } else {
-        if (miniStage != null) miniStage.close();
-    }
-});
+            if (isNow) {
+                showMiniPlayer(stage);
+            } else {
+                if (miniStage != null) {
+                    miniStage.close();
+                }
+            }
+        });
     }
 
     // ================= MENU BUTTON =================
@@ -282,41 +291,50 @@ public class HomeWindow {
         String normalStyle = "-fx-background-color:transparent;-fx-font-weight:bold;-fx-text-fill:#444;-fx-cursor:hand;";
 
         b.setStyle(active ? activeStyle : normalStyle);
-        b.setOnMouseEntered(e -> { if (!active) b.setStyle(activeStyle); });
-        b.setOnMouseExited(e  -> { if (!active) b.setStyle(normalStyle); });
+        b.setOnMouseEntered(e -> {
+            if (!active) {
+                b.setStyle(activeStyle);
+            }
+        });
+        b.setOnMouseExited(e -> {
+            if (!active) {
+                b.setStyle(normalStyle);
+            }
+        });
 
         return b;
     }
 
     // ================= EQ =================
- private void setupSpectrum(MediaPlayer player) {
+    private void setupSpectrum(MediaPlayer player) {
 
-    player.setAudioSpectrumInterval(0.05);
-    player.setAudioSpectrumNumBands(32);
+        player.setAudioSpectrumInterval(0.05);
+        player.setAudioSpectrumNumBands(32);
 
-    player.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
+        player.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
 
-        javafx.application.Platform.runLater(() -> {
+            javafx.application.Platform.runLater(() -> {
 
-            for (int i = 0; i < magnitudes.length && i < eqBars.getChildren().size(); i++) {
+                for (int i = 0; i < magnitudes.length && i < eqBars.getChildren().size(); i++) {
 
-                Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
+                    Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
 
-                double value = magnitudes[i] + 60; // normalize
+                    double value = magnitudes[i] + 60; // normalize
 
-                if (i > 12 && i < 25) {
-                    value *= 2;
+                    if (i > 12 && i < 25) {
+                        value *= 2;
+                    }
+
+                    double height = Math.max(5, value * 2);
+
+                    bar.setScaleY(height / 20.0);
                 }
 
-                double height = Math.max(5, value * 2);
-
-                bar.setScaleY(height / 20.0);
-            }
+            });
 
         });
+    }
 
-    });
-}
     private void updateProgressColor() {
 
         double percent = (progress.getValue() - progress.getMin())
@@ -331,321 +349,349 @@ public class HomeWindow {
             ));
         }
     }
-    
+
     private void bindPlayer(MediaPlayer player) {
 
-    player.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
+        player.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
 
-        double seconds = newTime.toSeconds();
+            double seconds = newTime.toSeconds();
 
-        progress.setValue(seconds);
+            progress.setValue(seconds);
 
-        int min = (int) seconds / 60;
-        int sec = (int) seconds % 60;
+            int min = (int) seconds / 60;
+            int sec = (int) seconds % 60;
 
-        time.setText(String.format("%02d:%02d", min, sec));
+            time.setText(String.format("%02d:%02d", min, sec));
 
-        updateProgressColor();
-    });
+            updateProgressColor();
+        });
 
-    player.setOnReady(() -> {
-        progress.setMax(player.getTotalDuration().toSeconds());
-    });
-}
+        player.setOnReady(() -> {
+            progress.setMax(player.getTotalDuration().toSeconds());
+        });
+    }
 
     // ================= SET SONG =================
-public void setSongInfo(Song song, Playlist playlist) {
-    
-    if (song == null) return;
+    public void setSongInfo(Song song, Playlist playlist) {
 
-    this.currentSong = song;
-    this.currentPlaylist = playlist;
+        if (song == null) {
+            return;
+        }
 
-    this.song.setText(song.getTitle());
-    this.artist.setText(song.getArtist());
+        this.currentSong = song;
+        this.currentPlaylist = playlist;
 
-    if (playlist != null) {
-        playerService.setQueue(playlist);
+        this.song.setText(song.getTitle());
+        this.artist.setText(song.getArtist());
+
+        if (playlist != null) {
+            playerService.setQueue(playlist);
+        }
+
+        playerService.playSong(song);
+
+        MediaPlayer player = song.getMediaPlayer(); // ⭐ ใช้ตัวนี้
+
+        setupSpectrum(player);
+        bindPlayer(player);
+
+        play.setText("⏸");
+        if (videoPlayer != null) {
+            videoPlayer.stop();
+            videoPlayer.play();
+        }
     }
-    
-    playerService.playSong(song);
 
-    MediaPlayer player = song.getMediaPlayer(); // ⭐ ใช้ตัวนี้
-
-    setupSpectrum(player);
-    bindPlayer(player);
-
-    play.setText("⏸");
-}
-
-public PlayerService getPlayerService() {
-    return playerService;
-}
+    public PlayerService getPlayerService() {
+        return playerService;
+    }
 
 // ================= INFO BUTTON =================
-private Button infoBtn() {
-    Button b = new Button("ℹ");
-    b.setPrefWidth(32);
-    b.setPrefHeight(32);
-    b.setStyle(
-        "-fx-background-color: transparent;" +
-        "-fx-font-size: 16px;" +
-        "-fx-font-weight: bold;" +
-        "-fx-text-fill: #444;" +
-        "-fx-cursor: hand;" +
-        "-fx-border-color: transparent;" +
-        "-fx-background-radius: 50%;"
-    );
-    b.setOnMouseEntered(e -> b.setStyle(
-        "-fx-background-color: #4773a1;" +
-        "-fx-font-size: 16px;" +
-        "-fx-font-weight: bold;" +
-        "-fx-text-fill: white;" +
-        "-fx-cursor: hand;" +
-        "-fx-border-color: transparent;" +
-        "-fx-background-radius: 50%;"
-    ));
-    b.setOnMouseExited(e -> b.setStyle(
-        "-fx-background-color: transparent;" +
-        "-fx-font-size: 16px;" +
-        "-fx-font-weight: bold;" +
-        "-fx-text-fill: #444;" +
-        "-fx-cursor: hand;" +
-        "-fx-border-color: transparent;" +
-        "-fx-background-radius: 50%;"
-    ));
-    return b;
-}
-
-private void showMiniPlayer(Stage mainStage) {
-    if (miniStage != null && miniStage.isShowing()) return;
-
-    miniStage = new Stage();
-    miniStage.initStyle(StageStyle.UNDECORATED);
-
-    // ================= LABELS =================
-    Label miniTitle  = new Label(currentSong != null ? currentSong.getTitle()  : "No song");
-    Label miniArtist = new Label(currentSong != null ? currentSong.getArtist() : "—");
-
-    miniTitle.setStyle("-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;");
-    miniArtist.setStyle("-fx-font-size:10px; -fx-text-fill:#4773a1;");
-
-    // Fix: Stop JavaFX from shrinking labels to "..." so marquee works
-    miniTitle.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-    miniArtist.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-
-    // ================= MARQUEE: TITLE =================
-    StackPane titleClip = new StackPane(miniTitle);
-    // Fix: Lock the exact width so it doesn't push the buttons away
-    titleClip.setMinSize(220, 22); 
-    titleClip.setMaxSize(220, 22);
-    titleClip.setAlignment(Pos.CENTER_LEFT);
-    titleClip.setClip(new Rectangle(220, 22));
-
-    javafx.animation.TranslateTransition marquee = new javafx.animation.TranslateTransition();
-    marquee.setNode(miniTitle);
-    marquee.setCycleCount(javafx.animation.Animation.INDEFINITE);
-    marquee.setAutoReverse(false);
-
-    Runnable startTitleMarquee = () -> {
-        double textWidth = miniTitle.prefWidth(-1);
-        marquee.stop();
-        miniTitle.setTranslateX(0);
-        
-        // If text is wider than our 220px box (or you can use miniTitle.getText().length() > 15)
-        if (textWidth > 220) {
-            double dist = textWidth - 180; // Calculate scroll distance
-            marquee.setFromX(0);
-            marquee.setToX(-dist);
-            marquee.setDuration(javafx.util.Duration.seconds(dist / 40.0));
-            marquee.play();
-        }
-    };
-    miniTitle.widthProperty().addListener((obs, o, n) -> startTitleMarquee.run());
-
-    // ================= MARQUEE: ARTIST =================
-    StackPane artistClip = new StackPane(miniArtist);
-    // Fix: Lock the exact width so it doesn't push the buttons away
-    artistClip.setMinSize(220, 18);
-    artistClip.setMaxSize(220, 18);
-    artistClip.setAlignment(Pos.CENTER_LEFT);
-    artistClip.setClip(new Rectangle(220, 18));
-
-    javafx.animation.TranslateTransition marqueeArtist = new javafx.animation.TranslateTransition();
-    marqueeArtist.setNode(miniArtist);
-    marqueeArtist.setCycleCount(javafx.animation.Animation.INDEFINITE);
-    marqueeArtist.setAutoReverse(false);
-
-    Runnable startArtistMarquee = () -> {
-        double textWidth = miniArtist.prefWidth(-1);
-        marqueeArtist.stop();
-        miniArtist.setTranslateX(0);
-        if (textWidth > 220) {
-            double dist = textWidth - 180;
-            marqueeArtist.setFromX(0);
-            marqueeArtist.setToX(-dist);
-            marqueeArtist.setDuration(javafx.util.Duration.seconds(dist / 40.0));
-            marqueeArtist.play();
-        }
-    };
-    miniArtist.widthProperty().addListener((obs, o, n) -> startArtistMarquee.run());
-
-    // ================= PROGRESS BAR =================
-    Slider miniProgress = new Slider();
-    miniProgress.setMin(progress.getMin());
-    miniProgress.setMax(progress.getMax() > 0 ? progress.getMax() : 100);
-    miniProgress.setValue(progress.getValue());
-    miniProgress.setPrefWidth(310);
-    miniProgress.setPrefHeight(6);
-    miniProgress.setStyle("-fx-control-inner-background:#cccccc;");
-
-    // Sync main → mini + อัปเดตสี
-    progress.valueProperty().addListener((obs, o, n) -> {
-        miniProgress.setValue(n.doubleValue());
-        updateMiniProgressColor(miniProgress);
-    });
-    progress.maxProperty().addListener((obs, o, n) ->
-        miniProgress.setMax(n.doubleValue())
-    );
-
-    // Seek จาก mini bar
-    miniProgress.valueProperty().addListener((obs, o, n) -> {
-        if (miniProgress.isValueChanging()) {
-            MediaPlayer player = playerService.getMediaPlayer();
-            if (player != null)
-                player.seek(javafx.util.Duration.seconds(n.doubleValue()));
-        }
-    });
-
-    // อัปเดตสีครั้งแรกทันทีที่ scene โหลดเสร็จ
-    miniProgress.sceneProperty().addListener((obs, o, n) -> {
-        if (n != null) updateMiniProgressColor(miniProgress);
-    });
-
-    // ================= BUTTONS =================
-    String btnStyle =
-        "-fx-background-color:transparent;" +
-        "-fx-font-size:15px;" +
-        "-fx-text-fill:#1a1a2e;" +
-        "-fx-cursor:hand;" +
-        "-fx-padding:2 6 2 6;";
-    String btnHover =
-        "-fx-background-color:#4773a1;" +
-        "-fx-font-size:15px;" +
-        "-fx-text-fill:white;" +
-        "-fx-cursor:hand;" +
-        "-fx-background-radius:4;" +
-        "-fx-padding:2 6 2 6;";
-
-    Button miniPrev    = new Button("<");
-    Button miniPlayBtn = new Button(playerService.isPlaying() ? "||" : "▶");
-    Button miniNext    = new Button(">");
-    Button miniRestore = new Button("↑");
-
-    for (Button b : new Button[]{miniPrev, miniPlayBtn, miniNext, miniRestore}) {
-        b.setStyle(btnStyle);
-        // Fix: Stop JavaFX from squishing buttons into "..."
-        b.setMinSize(Button.USE_PREF_SIZE, Button.USE_PREF_SIZE);
-        b.setOnMouseEntered(e -> b.setStyle(btnHover));
-        b.setOnMouseExited (e -> b.setStyle(btnStyle));
+    private Button infoBtn() {
+        Button b = new Button("ℹ");
+        b.setPrefWidth(32);
+        b.setPrefHeight(32);
+        b.setStyle(
+                "-fx-background-color: transparent;"
+                + "-fx-font-size: 16px;"
+                + "-fx-font-weight: bold;"
+                + "-fx-text-fill: #444;"
+                + "-fx-cursor: hand;"
+                + "-fx-border-color: transparent;"
+                + "-fx-background-radius: 50%;"
+        );
+        b.setOnMouseEntered(e -> b.setStyle(
+                "-fx-background-color: #4773a1;"
+                + "-fx-font-size: 16px;"
+                + "-fx-font-weight: bold;"
+                + "-fx-text-fill: white;"
+                + "-fx-cursor: hand;"
+                + "-fx-border-color: transparent;"
+                + "-fx-background-radius: 50%;"
+        ));
+        b.setOnMouseExited(e -> b.setStyle(
+                "-fx-background-color: transparent;"
+                + "-fx-font-size: 16px;"
+                + "-fx-font-weight: bold;"
+                + "-fx-text-fill: #444;"
+                + "-fx-cursor: hand;"
+                + "-fx-border-color: transparent;"
+                + "-fx-background-radius: 50%;"
+        ));
+        return b;
     }
 
-    // Play / Pause
-    miniPlayBtn.setOnAction(e -> {
-        playerService.togglePlayPause();
-        boolean playing = playerService.isPlaying();
-        miniPlayBtn.setText(playing ? "||" : "▶");
-        play.setText(playing ? "||" : "▶");
-        if (videoPlayer != null) {
-            if (playing) videoPlayer.play(); else videoPlayer.pause();
+    private void showMiniPlayer(Stage mainStage) {
+        if (miniStage != null && miniStage.isShowing()) {
+            return;
         }
-    });
 
-    // helper reset marquee เมื่อเปลี่ยนเพลง
-    Runnable resetMarquee = () -> {
-        marquee.stop();
-        marqueeArtist.stop();
-        miniTitle.setTranslateX(0);
-        miniArtist.setTranslateX(0);
-    };
+        miniStage = new Stage();
+        miniStage.initStyle(StageStyle.UNDECORATED);
 
-    // Next
-    miniNext.setOnAction(e -> {
-        Song s = playerService.next();
-        if (s != null) {
-            setSongInfo(s, currentPlaylist);
-            resetMarquee.run();
-            miniTitle.setText(s.getTitle());
-            miniArtist.setText(s.getArtist());
-            miniPlayBtn.setText("⏸");
+        // ================= LABEL =================
+        Label miniTitle = new Label(currentSong != null ? currentSong.getTitle() : "No song");
+        Label miniArtist = new Label(currentSong != null ? currentSong.getArtist() : "—");
+
+        miniTitle.setStyle("-fx-font-size:13px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;");
+        miniArtist.setStyle("-fx-font-size:11px; -fx-text-fill:#4773a1;");
+
+        miniTitle.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+        miniArtist.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+
+        // ================= MARQUEE =================
+        StackPane titleClip = new StackPane(miniTitle);
+        titleClip.setMinSize(160, 22);
+        titleClip.setMaxSize(160, 22);
+        titleClip.setAlignment(Pos.CENTER_LEFT);
+        titleClip.setClip(new Rectangle(160, 22));
+
+        StackPane artistClip = new StackPane(miniArtist);
+        artistClip.setMinSize(160, 18);
+        artistClip.setMaxSize(160, 18);
+        artistClip.setAlignment(Pos.CENTER_LEFT);
+        artistClip.setClip(new Rectangle(160, 18));
+
+        javafx.animation.TranslateTransition marquee = new javafx.animation.TranslateTransition();
+        marquee.setNode(miniTitle);
+
+        Runnable runMarquee = () -> {
+            double textW = miniTitle.prefWidth(-1) + 30;
+            double duration = (160 + textW) / 30.0;
+
+            marquee.stop();
+            miniTitle.setTranslateX(160);
+
+            marquee.setFromX(160);
+            marquee.setToX(-textW);
+            marquee.setDuration(javafx.util.Duration.seconds(duration));
+
+            marquee.play();
+        };
+
+        marquee.setOnFinished(e -> runMarquee.run());
+
+        miniTitle.widthProperty().addListener((obs, o, n) -> {
+            if (n.doubleValue() > 0) {
+                runMarquee.run();
+            }
+        });
+
+        // ================= PROGRESS =================
+        Slider miniProgress = new Slider();
+        miniProgress.setMin(progress.getMin());
+        miniProgress.setMax(progress.getMax() > 0 ? progress.getMax() : 100);
+        miniProgress.setValue(progress.getValue());
+        miniProgress.setPrefWidth(260);
+        miniProgress.setPrefHeight(5);
+
+        miniProgress.setStyle(
+                "-fx-background-color: transparent;"
+                + "-fx-control-inner-background: #d0d7e2;"
+        );
+
+        progress.valueProperty().addListener((obs, o, n) -> {
+            miniProgress.setValue(n.doubleValue());
+            updateMiniProgressColor(miniProgress);
+        });
+
+        progress.maxProperty().addListener((obs, o, n)
+                -> miniProgress.setMax(n.doubleValue())
+        );
+
+        miniProgress.valueProperty().addListener((obs, o, n) -> {
+            if (miniProgress.isValueChanging()) {
+                MediaPlayer player = playerService.getMediaPlayer();
+                if (player != null) {
+                    player.seek(javafx.util.Duration.seconds(n.doubleValue()));
+                }
+            }
+        });
+
+        miniProgress.sceneProperty().addListener((obs, o, n) -> {
+            if (n != null) {
+                updateMiniProgressColor(miniProgress);
+            }
+        });
+
+        // ================= BUTTON STYLE =================
+        String btnStyle
+                = "-fx-background-color: transparent;"
+                + "-fx-font-size: 14px;"
+                + "-fx-text-fill: #1a1a2e;"
+                + "-fx-cursor: hand;"
+                + "-fx-background-radius: 20;"
+                + "-fx-padding: 6;";
+
+        String btnHover
+                = "-fx-background-color: #4773a1;"
+                + "-fx-font-size: 14px;"
+                + "-fx-text-fill: white;"
+                + "-fx-cursor: hand;"
+                + "-fx-background-radius: 20;"
+                + "-fx-padding: 6;";
+
+        Button miniPrev = new Button("⏮");
+        Button miniPlayBtn = new Button(playerService.isPlaying() ? "⏸" : "▶");
+        Button miniNext = new Button("⏭");
+        Button miniRestore = new Button("⛶");
+
+        for (Button b : new Button[]{miniPrev, miniNext, miniRestore}) {
+            b.setStyle(btnStyle);
+            b.setMinSize(Button.USE_PREF_SIZE, Button.USE_PREF_SIZE);
+
+            b.setOnMouseEntered(e -> b.setStyle(btnHover));
+            b.setOnMouseExited(e -> b.setStyle(btnStyle));
         }
-    });
 
-    // Prev
-    miniPrev.setOnAction(e -> {
-        Song s = playerService.previous();
-        if (s != null) {
-            setSongInfo(s, currentPlaylist);
-            resetMarquee.run();
-            miniTitle.setText(s.getTitle());
-            miniArtist.setText(s.getArtist());
-            miniPlayBtn.setText("⏸");
-        }
-    });
+        // ⭐ PLAY BUTTON (เด่น)
+        miniPlayBtn.setStyle(
+                "-fx-background-color: #4773a1;"
+                + "-fx-text-fill: white;"
+                + "-fx-font-size: 15px;"
+                + "-fx-background-radius: 20;"
+                + "-fx-padding: 6 10 6 10;"
+        );
 
-    // Restore
-    miniRestore.setOnAction(e -> mainStage.setIconified(false));
+        miniPlayBtn.setOnMouseEntered(e
+                -> miniPlayBtn.setStyle(
+                        "-fx-background-color: #355d87;"
+                        + "-fx-text-fill: white;"
+                        + "-fx-font-size: 15px;"
+                        + "-fx-background-radius: 20;"
+                        + "-fx-padding: 6 10 6 10;"
+                ));
 
-    // ================= LAYOUT =================
-    HBox controls = new HBox(6, miniPrev, miniPlayBtn, miniNext, miniRestore);
-    controls.setAlignment(Pos.CENTER_RIGHT);
-    // Fix: Protect the controls box from being squeezed by the song title
-    controls.setMinWidth(Region.USE_PREF_SIZE);
+        miniPlayBtn.setOnMouseExited(e
+                -> miniPlayBtn.setStyle(
+                        "-fx-background-color: #4773a1;"
+                        + "-fx-text-fill: white;"
+                        + "-fx-font-size: 15px;"
+                        + "-fx-background-radius: 20;"
+                        + "-fx-padding: 6 10 6 10;"
+                ));
 
-    VBox songInfo = new VBox(2, titleClip, artistClip);
+        // ================= BUTTON ACTION =================
+        miniPlayBtn.setOnAction(e -> {
+            playerService.togglePlayPause();
+            boolean playing = playerService.isPlaying();
 
-    Region spacer = new Region();
-    HBox.setHgrow(spacer, Priority.ALWAYS);
+            miniPlayBtn.setText(playing ? "⏸" : "▶");
+            play.setText(playing ? "⏸" : "▶");
 
-    HBox topRow = new HBox(10, songInfo, spacer, controls);
-    topRow.setAlignment(Pos.CENTER_LEFT);
+            if (videoPlayer != null) {
+                if (playing) {
+                    videoPlayer.play();
+                } else {
+                    videoPlayer.pause();
+                }
+            }
+        });
 
-    VBox layout = new VBox(8, topRow, miniProgress);
-    layout.setPadding(new Insets(12, 14, 12, 14));
-    layout.setPrefWidth(340);
-    layout.setStyle(
-        "-fx-background-color: #f0f4fa;" +
-        "-fx-border-color: #4773a1;" +
-        "-fx-border-width: 1.5;" +
-        "-fx-border-radius: 10;" +
-        "-fx-background-radius: 10;" +
-        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 12, 0, 0, 4);"
-    );
+        Runnable resetMarquee = () -> {
+            marquee.stop();
+            javafx.application.Platform.runLater(runMarquee);
+        };
 
-    // ================= POSITION & SHOW =================
-    Rectangle2D screen = javafx.stage.Screen.getPrimary().getVisualBounds();
-    miniStage.setX(screen.getMaxX() - 370);
-    miniStage.setY(screen.getMaxY() - 120);
+        miniNext.setOnAction(e -> {
+            Song s = playerService.next();
+            if (s != null) {
+                setSongInfo(s, currentPlaylist);
+                miniTitle.setText(s.getTitle());
+                miniArtist.setText(s.getArtist());
+                resetMarquee.run();
+            }
+        });
 
-    miniStage.setScene(new Scene(layout));
-    miniStage.setAlwaysOnTop(true);
-    miniStage.show();
-}
+        miniPrev.setOnAction(e -> {
+            Song s = playerService.previous();
+            if (s != null) {
+                setSongInfo(s, currentPlaylist);
+                miniTitle.setText(s.getTitle());
+                miniArtist.setText(s.getArtist());
+                resetMarquee.run();
+            }
+        });
+
+        miniRestore.setOnAction(e -> mainStage.setIconified(false));
+
+        // ================= LAYOUT =================
+        HBox controls = new HBox(6, miniPrev, miniPlayBtn, miniNext, miniRestore);
+        controls.setAlignment(Pos.CENTER_RIGHT);
+        controls.setMinWidth(Region.USE_PREF_SIZE);
+
+        VBox songInfo = new VBox(2, titleClip, artistClip);
+        songInfo.setAlignment(Pos.CENTER_LEFT);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox topRow = new HBox(12, songInfo, spacer, controls);
+        topRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox layout = new VBox(10, topRow, miniProgress);
+        layout.setPadding(new Insets(12, 16, 12, 16));
+        layout.setPrefWidth(300);
+        layout.setStyle(
+                "-fx-background-color: #f5f5f5;"
+                + "-fx-background-insets: 0;"
+                + "-fx-border-color: #4773a1;"
+                + "-fx-border-width: 2;"
+                + "-fx-border-radius: 12;"
+                + "-fx-background-radius: 12;"
+        );
+
+        // ================= POSITION =================
+        Rectangle2D screen = javafx.stage.Screen.getPrimary().getVisualBounds();
+        miniStage.setX(screen.getMaxX() - 350);
+        miniStage.setY(screen.getMaxY() - 130);
+
+        Scene scene = new Scene(layout);
+        scene.setFill(null);
+
+        miniStage.setScene(scene);
+        miniStage.initStyle(StageStyle.TRANSPARENT);
+        miniStage.setAlwaysOnTop(true);
+        miniStage.show();
+    }
+
     private void updateMiniProgressColor(Slider miniProgress) {
-    if (miniProgress.getMax() == 0) return;
-
-    double percent = (miniProgress.getValue() - miniProgress.getMin())
-            / (miniProgress.getMax() - miniProgress.getMin()) * 100;
-
-    javafx.application.Platform.runLater(() -> {
-        Node track = miniProgress.lookup(".track");
-        if (track != null) {
-            track.setStyle(String.format(
-                "-fx-background-color: linear-gradient(to right, #4773a1 %.2f%%, #cccccc %.2f%%);",
-                percent, percent
-            ));
+        if (miniProgress.getMax() == 0) {
+            return;
         }
-    });
-}
+
+        double percent = (miniProgress.getValue() - miniProgress.getMin())
+                / (miniProgress.getMax() - miniProgress.getMin()) * 100;
+
+        javafx.application.Platform.runLater(() -> {
+            Node track = miniProgress.lookup(".track");
+            if (track != null) {
+                track.setStyle(String.format(
+                        "-fx-background-color: linear-gradient(to right, #4773a1 %.2f%%, #cccccc %.2f%%);",
+                        percent, percent
+                ));
+            }
+        });
+    }
 
 }

@@ -8,7 +8,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) {
         stage.getIcons().add(
-                new Image(getClass().getResource("/pictures/nnine.png").toExternalForm())
+                new Image(getClass().getResource("/pictures/logo.png").toExternalForm())
         );
         HomeWindow home = new HomeWindow();
         home.show(stage);

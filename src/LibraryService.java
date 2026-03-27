@@ -1,9 +1,10 @@
+
 import java.io.*;
 import java.util.UUID;
 
 public class LibraryService {
 
-    private static final String LIBRARY_FILE  = "library.dat";
+    private static final String LIBRARY_FILE = "library.dat";
     private static final String PLAYLIST_FILE = "playlist.dat";
 
     private Library library;
@@ -26,14 +27,14 @@ public class LibraryService {
         library.removeSong(id);
         saveLibrary();
     }
-    
+
 // Call this to update the song and trigger the forced save
     public void updateSong(UUID id, String newTitle, String newArtist) {
         Song song = getSongById(id);
         if (song != null) {
             song.setTitle(newTitle);
             song.setArtist(newArtist);
-            forceSave(); 
+            forceSave();
         }
     }
 
@@ -63,37 +64,48 @@ public class LibraryService {
         library.deletePlaylist(id);
         saveLibrary();
     }
-public Song getSongById(UUID id) {
-    return library.getMySongs()
-            .stream()
-            .filter(s -> s.getId().equals(id))
-            .findFirst()
-            .orElse(null);
-}
 
-    /** Add a song (by id) to a playlist (by id), then persist. */
+    public Song getSongById(UUID id) {
+        return library.getMySongs()
+                .stream()
+                .filter(s -> s.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Add a song (by id) to a playlist (by id), then persist.
+     */
     public boolean addSongToPlaylist(UUID playlistId, UUID songId) {
         java.util.Optional<Playlist> op = library.findPlaylist(playlistId);
-        if (op.isEmpty()) return false;
+        if (op.isEmpty()) {
+            return false;
+        }
 
         Playlist playlist = op.get();
 
         // avoid duplicates
         boolean already = playlist.getSongs().stream()
                 .anyMatch(s -> s.getId().equals(songId));
-        if (already) return false;
+        if (already) {
+            return false;
+        }
 
         java.util.Optional<Song> os = library.getMySongs().stream()
                 .filter(s -> s.getId().equals(songId))
                 .findFirst();
-        if (os.isEmpty()) return false;
+        if (os.isEmpty()) {
+            return false;
+        }
 
         playlist.addSong(os.get());
         saveLibrary();
         return true;
     }
 
-    /** Remove a song from a playlist, then persist. */
+    /**
+     * Remove a song from a playlist, then persist.
+     */
     public void removeSongFromPlaylist(UUID playlistId, UUID songId) {
         library.findPlaylist(playlistId).ifPresent(p -> {
             p.removeSong(songId);
@@ -101,7 +113,9 @@ public Song getSongById(UUID id) {
         });
     }
 
-    /** Update playlist name / description, then persist. */
+    /**
+     * Update playlist name / description, then persist.
+     */
     public void updatePlaylist(UUID playlistId, String name, String description) {
         library.findPlaylist(playlistId).ifPresent(p -> {
             p.setName(name);
@@ -112,8 +126,8 @@ public Song getSongById(UUID id) {
 
     // ── Persistence ───────────────────────────────────────────
     private void saveLibrary() {
-        try (ObjectOutputStream out =
-                new ObjectOutputStream(new FileOutputStream(LIBRARY_FILE))) {
+        try (ObjectOutputStream out
+                = new ObjectOutputStream(new FileOutputStream(LIBRARY_FILE))) {
             out.writeObject(library);
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,8 +135,8 @@ public Song getSongById(UUID id) {
     }
 
     private Library loadLibrary() {
-        try (ObjectInputStream in =
-                new ObjectInputStream(new FileInputStream(LIBRARY_FILE))) {
+        try (ObjectInputStream in
+                = new ObjectInputStream(new FileInputStream(LIBRARY_FILE))) {
             return (Library) in.readObject();
         } catch (Exception e) {
             return new Library();

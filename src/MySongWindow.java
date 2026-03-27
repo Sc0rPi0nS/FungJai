@@ -284,15 +284,12 @@ public class MySongWindow {
 
             if (!newTitle.isEmpty() && !newArtist.isEmpty()) {
 
-                // ✅ update ตัว Song จริง
-                song.setTitle(newTitle);
-                song.setArtist(newArtist);
+                // ✅ ใช้ updateSong() ที่ครอบคลุม update + save ในตัวเดียว
+                libraryService.updateSong(song.getId(), newTitle, newArtist);
 
-                // ✅ update Table (SongRow)
+                // อัปเดต UI
                 row.setTitle(newTitle);
                 row.setArtist(newArtist);
-
-                // refresh table
                 table.refresh();
 
                 popup.close();
