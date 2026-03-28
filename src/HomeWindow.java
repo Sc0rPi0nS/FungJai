@@ -134,6 +134,41 @@ public class HomeWindow {
         Button shuffle = new Button("🔀");
         Button replay = new Button("🔁");
 
+        String ctrlBtnStyle
+                = "-fx-background-color:linear-gradient(to bottom,#f0f0f0,#d8d8d8,#c8c8c8);"
+                + "-fx-background-radius:6px;"
+                + "-fx-border-color:#e4e4e4 #a8a8a8 #a8a8a8 #e4e4e4;"
+                + "-fx-border-radius:6px;-fx-border-width:1;"
+                + "-fx-text-fill:#333333;-fx-font-size:13px;-fx-cursor:hand;"
+                + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),3,0,0,2);";
+
+        String ctrlBtnActiveStyle
+                = "-fx-background-color:linear-gradient(to bottom,#6090d0,#4070b0,#2a5090);"
+                + "-fx-background-radius:6px;"
+                + "-fx-border-color:#80b0e0 #1a4080 #1a4080 #80b0e0;"
+                + "-fx-border-radius:6px;-fx-border-width:1;"
+                + "-fx-text-fill:white;-fx-font-size:13px;-fx-cursor:hand;"
+                + "-fx-effect:dropshadow(gaussian,rgba(0,80,180,0.4),5,0.3,0,0);";
+
+        lyrics.setStyle(ctrlBtnStyle + "-fx-font-size:11px;-fx-padding:5 14 5 14;");
+        shuffle.setStyle(ctrlBtnStyle);
+        shuffle.setPrefSize(36, 36);
+        prev.setStyle(ctrlBtnStyle);
+        prev.setPrefSize(36, 36);
+        next.setStyle(ctrlBtnStyle);
+        next.setPrefSize(36, 36);
+        replay.setStyle(ctrlBtnStyle);
+        replay.setPrefSize(36, 36);
+
+        play.setStyle(
+                "-fx-background-color:linear-gradient(to bottom,#f0f0f0,#d8d8d8,#c4c4c4);"
+                + "-fx-background-radius:50%;-fx-border-radius:50%;"
+                + "-fx-border-color:#e4e4e4 #a0a0a0 #a0a0a0 #e4e4e4;"
+                + "-fx-border-width:1.5;-fx-text-fill:#222222;-fx-font-size:20px;-fx-cursor:hand;"
+                + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.25),6,0,0,3);"
+        );
+        play.setPrefSize(56, 56);
+
         volume = new Slider(0, 1, 0.7);
         volume.setPrefWidth(80);
 
@@ -143,22 +178,18 @@ public class HomeWindow {
                 player.setVolume(newVal.doubleValue());
             }
         });
+Label volIcon = new Label("🔊");
 
-        HBox leftControls = new HBox(3, lyrics, shuffle, prev);
-        leftControls.setAlignment(Pos.CENTER_RIGHT);
-        leftControls.setPrefWidth(200);
+HBox volumeBox = new HBox(4, volIcon, volume);
+volumeBox.setAlignment(Pos.CENTER);
 
-        StackPane centerControls = new StackPane(play);
-        centerControls.setAlignment(Pos.CENTER);
+// ⭐ รวมทุกปุ่มไว้ด้วยกัน
+HBox controls = new HBox(6, lyrics, shuffle, prev, play, next, replay, volumeBox);
+controls.setAlignment(Pos.CENTER);
+controls.setPadding(new Insets(0, 0, 0, 20));
 
-        HBox rightControls = new HBox(3, next, replay, new Label("🔊"), volume);
-        rightControls.setAlignment(Pos.CENTER_LEFT);
-        rightControls.setPrefWidth(200);
-
-        BorderPane controlBar = new BorderPane();
-        controlBar.setLeft(leftControls);
-        controlBar.setCenter(centerControls);
-        controlBar.setRight(rightControls);
+    BorderPane controlBar = new BorderPane();
+    controlBar.setCenter(controls);
 
         progress = new Slider();
         progress.setMin(0);
@@ -281,7 +312,7 @@ public class HomeWindow {
             if (themeBtn.getText().equals("🌙 Dark")) {
                 // Switch to Dark
                 scene.getStylesheets().add(getClass().getResource("/css/dark-theme.css").toExternalForm());
-                themeBtn.setText("☀️ Light");
+                themeBtn.setText("☀️Light");
             } else {
                 // Switch to Light
                 scene.getStylesheets().add(getClass().getResource("/css/light-theme.css").toExternalForm());
@@ -386,6 +417,7 @@ public class HomeWindow {
     public void setSongInfo(Song song, Playlist playlist) {
 
         if (song == null) {
+            videoPlayer.stop();
             return;
         }
 

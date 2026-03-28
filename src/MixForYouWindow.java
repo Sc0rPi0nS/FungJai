@@ -12,7 +12,7 @@ import java.util.*;
 
 public class MixForYouWindow {
 
-    // ── theme (matches PlaylistWindow) ────────────────────────
+    // ── theme ─────────────────────────────────────────────────
     private static final String BG     = "#f5f5f5";
     private static final String PANEL  = "#ffffff";
     private static final String BORDER = "#e0e0e0";
@@ -29,17 +29,12 @@ public class MixForYouWindow {
         { "#1a2b2b", "#1e4040", "#2a6060", "#60d0d0" },
     };
 
-    // ── state ─────────────────────────────────────────────────
     private final HomeWindow homeWindow;
     private final LibraryService libraryService;
-    private ObservableList<Playlist> mixes;
 
     public MixForYouWindow(HomeWindow homeWindow, LibraryService libraryService) {
         this.homeWindow     = homeWindow;
         this.libraryService = libraryService;
-        this.mixes = FXCollections.observableArrayList(
-                libraryService.getLibrary().getMixForYou()
-        );
     }
 
     // ── entry ─────────────────────────────────────────────────
@@ -69,9 +64,7 @@ public class MixForYouWindow {
         HBox bar = new HBox(title);
         bar.setAlignment(Pos.CENTER);
         bar.setPadding(new Insets(10));
-        bar.setStyle("-fx-background-color:#eeeeee;"
-                + "-fx-border-color:#cccccc;"
-                + "-fx-border-width:0 0 1 0;");
+        bar.setStyle("-fx-background-color:#eeeeee;-fx-border-color:#cccccc;-fx-border-width:0 0 1 0;");
         return bar;
     }
 
@@ -82,11 +75,9 @@ public class MixForYouWindow {
         cardPane.setPadding(new Insets(16, 20, 16, 20));
         cardPane.setStyle("-fx-background-color:" + PANEL + ";"
                 + "-fx-border-color:" + BORDER + ";"
-                + "-fx-border-width:1;"
-                + "-fx-border-radius:8;"
-                + "-fx-background-radius:8;");
+                + "-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;");
 
-        rebuildCards(cardPane, stage);
+        refreshCards(cardPane, stage);
 
         ScrollPane scroll = new ScrollPane(cardPane);
         scroll.setFitToHeight(true);
@@ -94,33 +85,18 @@ public class MixForYouWindow {
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setStyle("-fx-background-color:transparent;-fx-background:transparent;");
 
-        // ── Generate button ────────────────────────────────────
-        Button btnGenerate = new Button("✨  Generate Mix");
-        String accentStyle = "-fx-background-color:" + ACCENT + ";"
-                + "-fx-text-fill:white;-fx-font-weight:bold;-fx-cursor:hand;"
-                + "-fx-border-radius:4;-fx-background-radius:4;-fx-padding:5 12 5 12;";
-        String accentHover = "-fx-background-color:#355f8a;"
-                + "-fx-text-fill:white;-fx-font-weight:bold;-fx-cursor:hand;"
-                + "-fx-border-radius:4;-fx-background-radius:4;-fx-padding:5 12 5 12;";
-        btnGenerate.setStyle(accentStyle);
-        btnGenerate.setOnMouseEntered(e -> btnGenerate.setStyle(accentHover));
-        btnGenerate.setOnMouseExited(e  -> btnGenerate.setStyle(accentStyle));
+        Button btnGenerate = accentBtn("✨  Generate Mix");
         btnGenerate.setOnAction(e -> {
             generateMix();
-            rebuildCards(cardPane, stage);
+            refreshCards(cardPane, stage);
         });
 
-        // ── Clear All button ───────────────────────────────────
         Button btnClear = flatBtn("🗑  Clear All");
         btnClear.setOnAction(e -> {
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                    "Clear all mixes?", ButtonType.YES, ButtonType.NO);
-            confirm.setHeaderText(null);
-            confirm.showAndWait().filter(r -> r == ButtonType.YES).ifPresent(r -> {
+            if (confirm(stage, "Clear all mixes?")) {
                 libraryService.getLibrary().clearMixes();
-                mixes.clear();
-                rebuildCards(cardPane, stage);
-            });
+                refreshCards(cardPane, stage);
+            }
         });
 
         HBox bar = new HBox(8, btnGenerate, btnClear);
@@ -132,9 +108,9 @@ public class MixForYouWindow {
     }
 
     // ── rebuild card row ──────────────────────────────────────
-    private void rebuildCards(HBox cardPane, Stage stage) {
+    private void refreshCards(HBox cardPane, Stage stage) {
         cardPane.getChildren().clear();
-        mixes.setAll(libraryService.getLibrary().getMixForYou());
+        List<Playlist> mixes = libraryService.getLibrary().getMixForYou();
 
         if (mixes.isEmpty()) {
             Label empty = new Label("No mixes yet. Click ✨ to generate one.");
@@ -143,50 +119,46 @@ public class MixForYouWindow {
             return;
         }
 
-        int idx = 0;
-        for (Playlist mix : mixes) {
-            String[] palette = PALETTES[idx % PALETTES.length];
-            cardPane.getChildren().add(buildCard(mix, palette, stage, cardPane));
-            idx++;
+        for (int i = 0; i < mixes.size(); i++) {
+            String[] palette = PALETTES[i % PALETTES.length];
+            cardPane.getChildren().add(buildCard(mixes.get(i), palette, stage, cardPane));
         }
     }
 
-    // ── single card ───────────────────────────────────────────
+    // ── single mix card ───────────────────────────────────────
     private VBox buildCard(Playlist mix, String[] palette, Stage stage, HBox cardPane) {
-        Label lbl = new Label(mix.getName());
-        lbl.setFont(Font.font("Arial", FontWeight.BOLD, 11));
-        lbl.setWrapText(true);
-        lbl.setAlignment(Pos.CENTER);
-        lbl.setMaxWidth(104);
-        lbl.setStyle("-fx-text-alignment:center;-fx-text-fill:" + TEXT + ";");
+        Label nameLbl = new Label(mix.getName());
+        nameLbl.setFont(Font.font("Arial", FontWeight.BOLD, 11));
+        nameLbl.setWrapText(true);
+        nameLbl.setAlignment(Pos.CENTER);
+        nameLbl.setMaxWidth(104);
+        nameLbl.setStyle("-fx-text-alignment:center;-fx-text-fill:" + TEXT + ";");
 
-        Label sub = new Label(mix.getSongs().size() + " songs");
-        sub.setFont(Font.font("Arial", 9));
-        sub.setAlignment(Pos.CENTER);
-        sub.setMaxWidth(104);
-        sub.setStyle("-fx-text-alignment:center;-fx-text-fill:" + MUTED + ";");
+        Label countLbl = new Label(mix.getSongs().size() + " songs");
+        countLbl.setFont(Font.font("Arial", 9));
+        countLbl.setAlignment(Pos.CENTER);
+        countLbl.setMaxWidth(104);
+        countLbl.setStyle("-fx-text-alignment:center;-fx-text-fill:" + MUTED + ";");
 
-        VBox card = new VBox(6, buildVinyl(104, 70, palette), lbl, sub);
+        VBox card = new VBox(6, buildVinyl(104, 70, palette), nameLbl, countLbl);
         card.setAlignment(Pos.TOP_CENTER);
         card.setPadding(new Insets(8, 6, 8, 6));
-        card.setCursor(Cursor.HAND);
+        card.setCursor(javafx.scene.Cursor.HAND);
 
-        String sOff = "-fx-background-color:transparent;-fx-border-color:transparent;"
-                + "-fx-border-radius:8;-fx-background-radius:8;";
-        String sOn  = "-fx-background-color:rgba(0,0,0,0.04);-fx-border-color:#dddddd;"
-                + "-fx-border-radius:8;-fx-background-radius:8;";
+        String sOff = "-fx-background-color:transparent;-fx-border-color:transparent;-fx-border-radius:8;-fx-background-radius:8;";
+        String sOn  = "-fx-background-color:rgba(0,0,0,0.04);-fx-border-color:#dddddd;-fx-border-radius:8;-fx-background-radius:8;";
         card.setStyle(sOff);
         card.setOnMouseEntered(e -> card.setStyle(sOn));
         card.setOnMouseExited(e  -> card.setStyle(sOff));
-        card.setOnMouseClicked(e -> {
-            openDetailWindow(stage, mix, palette);
-            sub.setText(mix.getSongs().size() + " songs");
-        });
+
+        card.setOnMouseClicked(e ->
+            openDetailWindow(stage, mix, palette, () -> refreshCards(cardPane, stage))
+        );
 
         return card;
     }
 
-    // ── vinyl record drawing ──────────────────────────────────
+    // ── vinyl graphic ─────────────────────────────────────────
     private Pane buildVinyl(double w, double h, String[] palette) {
         Pane p = new Pane();
         p.setPrefSize(w, h);
@@ -194,19 +166,18 @@ public class MixForYouWindow {
         double cx = w / 2, cy = h / 2;
         double outerR = Math.min(w, h) * 0.46;
 
-        Circle record = new Circle(cx, cy, outerR);
-        record.setFill(Color.web(palette[0]));
-        p.getChildren().add(record);
+        Circle disc = new Circle(cx, cy, outerR);
+        disc.setFill(Color.web(palette[0]));
 
-        for (int i = 3; i >= 1; i--) {
-            Circle groove = new Circle(cx, cy, outerR * (0.55 + i * 0.13));
+        for (int i = 1; i <= 3; i++) {
+            Circle groove = new Circle(cx, cy, outerR * (0.9 - i * 0.15));
             groove.setFill(Color.TRANSPARENT);
-            groove.setStroke(Color.web(palette[1], 0.6));
-            groove.setStrokeWidth(1);
+            groove.setStroke(Color.web(palette[1], 0.5));
+            groove.setStrokeWidth(0.8);
             p.getChildren().add(groove);
         }
 
-        Circle label = new Circle(cx, cy, outerR * 0.38);
+        Circle label = new Circle(cx, cy, outerR * 0.42);
         label.setFill(Color.web(palette[2]));
 
         Circle labelRing = new Circle(cx, cy, outerR * 0.40);
@@ -221,7 +192,7 @@ public class MixForYouWindow {
                 outerR * 0.3, outerR * 0.12);
         shine.setFill(Color.web("#ffffff", 0.10));
 
-        p.getChildren().addAll(label, labelRing, hole, shine);
+        p.getChildren().addAll(disc, label, labelRing, hole, shine);
         return p;
     }
 
@@ -235,27 +206,21 @@ public class MixForYouWindow {
 
         List<Song> shuffled = new ArrayList<>(allSongs);
         Collections.shuffle(shuffled);
-        int count = Math.min(10, shuffled.size());
-
-        String[] moodNames = {
-            "Late Night Vibes", "Morning Boost", "Chill Wave",
-            "Energy Rush", "Focus Mode", "Sunset Drive",
-            "Rainy Day", "Happy Hour", "Deep Focus", "Road Trip"
-        };
-
+        int count  = Math.min(10, shuffled.size());
         int mixNum = libraryService.getLibrary().getMixForYou().size() + 1;
-        String name = moodNames[(mixNum - 1) % moodNames.length];
 
-        Playlist mix = new Playlist(name, "Auto-generated mix #" + mixNum);
-        for (int i = 0; i < count; i++) {
-            mix.addSong(shuffled.get(i));
-        }
+        Playlist mix = new Playlist(
+                "Random Mix " + mixNum,
+                "Auto-generated mix #" + mixNum
+        );
+        for (int i = 0; i < count; i++) mix.addSong(shuffled.get(i));
 
         libraryService.getLibrary().addMix(mix);
     }
 
     // ── detail window ─────────────────────────────────────────
-    private void openDetailWindow(Stage owner, Playlist mix, String[] palette) {
+    private void openDetailWindow(Stage owner, Playlist mix, String[] palette,
+                                   Runnable refreshCallback) {
         Stage win = new Stage();
         win.initModality(Modality.WINDOW_MODAL);
         win.initOwner(owner);
@@ -267,7 +232,6 @@ public class MixForYouWindow {
             rows.add(new SongRow(s.getId(), s.getTitle(), s.getArtist(), s.getFilePathMp3()));
         }
 
-        // ── table ──────────────────────────────────────────────
         TableView<SongRow> table = new TableView<>(rows);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         table.setPrefHeight(210);
@@ -275,20 +239,16 @@ public class MixForYouWindow {
 
         TableColumn<SongRow, String> titleCol = new TableColumn<>("Title");
         titleCol.setCellValueFactory(d -> d.getValue().titleProperty());
-
         TableColumn<SongRow, String> artistCol = new TableColumn<>("Artist");
         artistCol.setCellValueFactory(d -> d.getValue().artistProperty());
-
         table.getColumns().addAll(titleCol, artistCol);
 
-        // double-click → เล่นเพลงที่เลือก queue = mix นี้
         table.setRowFactory(tv -> {
             TableRow<SongRow> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
-                    SongRow r = row.getItem();
                     Song song = mix.getSongs().stream()
-                            .filter(s -> s.getId().equals(r.getId()))
+                            .filter(s -> s.getId().equals(row.getItem().getId()))
                             .findFirst().orElse(null);
                     if (song != null && homeWindow != null) {
                         homeWindow.getPlayerService().playLibrary(mix.getSongs(), song);
@@ -299,17 +259,7 @@ public class MixForYouWindow {
             return row;
         });
 
-        // ── Play All ───────────────────────────────────────────
-        Button btnPlayAll = new Button("▶  Play All");
-        String accentStyle = "-fx-background-color:" + ACCENT + ";"
-                + "-fx-text-fill:white;-fx-font-weight:bold;-fx-cursor:hand;"
-                + "-fx-border-radius:4;-fx-background-radius:4;-fx-padding:5 12 5 12;";
-        String accentHover = "-fx-background-color:#355f8a;"
-                + "-fx-text-fill:white;-fx-font-weight:bold;-fx-cursor:hand;"
-                + "-fx-border-radius:4;-fx-background-radius:4;-fx-padding:5 12 5 12;";
-        btnPlayAll.setStyle(accentStyle);
-        btnPlayAll.setOnMouseEntered(e -> btnPlayAll.setStyle(accentHover));
-        btnPlayAll.setOnMouseExited(e  -> btnPlayAll.setStyle(accentStyle));
+        Button btnPlayAll = accentBtn("▶  Play All");
         btnPlayAll.setOnAction(e -> {
             if (!mix.getSongs().isEmpty() && homeWindow != null) {
                 Song first = mix.getSongs().get(0);
@@ -319,70 +269,68 @@ public class MixForYouWindow {
             }
         });
 
-        // ── Delete Mix ─────────────────────────────────────────
-        Button btnDelete = flatBtn("🗑  Delete Mix");
-        btnDelete.setStyle("-fx-background-color:transparent;-fx-border-color:transparent;"
-                + "-fx-font-weight:bold;-fx-text-fill:#cc3333;-fx-cursor:hand;");
+        Button btnDelete = dangerBtn("🗑  Delete Mix");
         btnDelete.setOnAction(e -> {
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                    "Delete mix \"" + mix.getName() + "\"?",
-                    ButtonType.YES, ButtonType.NO);
-            confirm.setHeaderText(null);
-            confirm.initOwner(win);
-            confirm.showAndWait().filter(r -> r == ButtonType.YES).ifPresent(r -> {
-                libraryService.getLibrary().clearMixes(); // ลบทั้งหมดแล้ว re-add ยกเว้นตัวนี้
-                // วิธีที่ถูกต้อง: Library.getMixForYou() เป็น unmodifiableList
-                // ต้อง re-generate จาก list ที่กรองแล้ว — ใช้ findMix + addMix ไม่ได้ลบ
-                // จึงใช้วิธี clearMixes แล้ว add กลับทุกตัวยกเว้นตัวที่ลบ
-                List<Playlist> remaining = new ArrayList<>(mixes);
+            if (confirm(win, "Delete mix \"" + mix.getName() + "\"?")) {
+                List<Playlist> remaining = new ArrayList<>(libraryService.getLibrary().getMixForYou());
                 remaining.removeIf(m -> m.getId().equals(mix.getId()));
-                for (Playlist keep : remaining) {
-                    libraryService.getLibrary().addMix(keep);
-                }
+                libraryService.getLibrary().clearMixes();
+                remaining.forEach(libraryService.getLibrary()::addMix);
+                refreshCallback.run();
                 win.close();
-            });
+            }
         });
 
         HBox foot = new HBox(8, btnPlayAll, btnDelete);
         foot.setPadding(new Insets(8, 10, 10, 10));
         foot.setStyle("-fx-background-color:" + BG + ";");
 
-        // ── header ─────────────────────────────────────────────
         Pane vinyl = buildVinyl(60, 60, palette);
         Label mixName = new Label(mix.getName());
         mixName.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         mixName.setStyle("-fx-text-fill:" + TEXT + ";");
         Label mixDesc = new Label(mix.getDescription() + "  •  " + mix.getSongs().size() + " songs");
         mixDesc.setStyle("-fx-text-fill:" + MUTED + ";-fx-font-size:11px;");
-        VBox nameBox = new VBox(3, mixName, mixDesc);
-        nameBox.setAlignment(Pos.CENTER_LEFT);
-        HBox header = new HBox(12, vinyl, nameBox);
+        HBox header = new HBox(12, vinyl, new VBox(3, mixName, mixDesc));
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(10, 14, 10, 14));
-        header.setStyle("-fx-background-color:#eeeeee;"
-                + "-fx-border-color:#cccccc;"
-                + "-fx-border-width:0 0 1 0;");
-
-        VBox center = new VBox(0, table, foot);
-        center.setPadding(new Insets(10));
+        header.setStyle("-fx-background-color:#eeeeee;-fx-border-color:#cccccc;-fx-border-width:0 0 1 0;");
 
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color:" + BG + ";");
         root.setTop(header);
-        root.setCenter(center);
+        root.setCenter(new VBox(0, table, foot));
 
         win.setScene(new Scene(root, 500, 340));
         win.showAndWait();
     }
 
-    // ── helpers ───────────────────────────────────────────────
+    // ── UI helpers ────────────────────────────────────────────
     private Button flatBtn(String text) {
         Button b = new Button(text);
         b.setFont(Font.font("Arial", FontWeight.BOLD, 11));
-        String off = "-fx-background-color:transparent;-fx-border-color:transparent;"
-                + "-fx-font-weight:bold;-fx-text-fill:#444444;-fx-cursor:hand;";
-        String on  = "-fx-background-color:rgba(0,0,0,0.08);-fx-border-color:transparent;"
-                + "-fx-font-weight:bold;-fx-text-fill:#111111;";
+        String off = "-fx-background-color:transparent;-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#444444;-fx-cursor:hand;";
+        String on  = "-fx-background-color:rgba(0,0,0,0.08);-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#111111;";
+        b.setStyle(off);
+        b.setOnMouseEntered(e -> b.setStyle(on));
+        b.setOnMouseExited(e  -> b.setStyle(off));
+        return b;
+    }
+
+    private Button accentBtn(String text) {
+        Button b = new Button(text);
+        String off = "-fx-background-color:" + ACCENT + ";-fx-text-fill:white;-fx-font-weight:bold;-fx-cursor:hand;-fx-border-radius:4;-fx-background-radius:4;-fx-padding:5 12 5 12;";
+        String on  = "-fx-background-color:#355f8a;-fx-text-fill:white;-fx-font-weight:bold;-fx-cursor:hand;-fx-border-radius:4;-fx-background-radius:4;-fx-padding:5 12 5 12;";
+        b.setStyle(off);
+        b.setOnMouseEntered(e -> b.setStyle(on));
+        b.setOnMouseExited(e  -> b.setStyle(off));
+        return b;
+    }
+
+    private Button dangerBtn(String text) {
+        Button b = new Button(text);
+        String off = "-fx-background-color:transparent;-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#cc3333;-fx-cursor:hand;";
+        String on  = "-fx-background-color:rgba(0,0,0,0.06);-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#cc3333;";
         b.setStyle(off);
         b.setOnMouseEntered(e -> b.setStyle(on));
         b.setOnMouseExited(e  -> b.setStyle(off));
@@ -392,6 +340,13 @@ public class MixForYouWindow {
     private void alert(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
         a.setHeaderText(null);
-        a.showAndWait();
+        a.show();
+    }
+
+    private boolean confirm(Stage owner, String msg) {
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION, msg, ButtonType.YES, ButtonType.NO);
+        a.initOwner(owner);
+        a.setHeaderText(null);
+        return a.showAndWait().filter(r -> r == ButtonType.YES).isPresent();
     }
 }
