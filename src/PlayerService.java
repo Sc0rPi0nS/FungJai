@@ -1,4 +1,3 @@
-
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -6,62 +5,43 @@ import javafx.application.Platform;
 import javafx.scene.media.MediaPlayer;
 
 public class PlayerService {
-
+    
+    //Attribute
     private boolean looping;
     private boolean shuffling;
-    private int loopMode = 0; // 0=off, 1=loop all, 2=loop one
+    private int loopMode = 0; // 0=off, 1=loop playlist, 2=loop one song
 
     private Playlist currentQueue;
     private int currentIndex = -1;
 
     private boolean isPlaying = false;
 
-    /**
-     * Callback ที่ HomeWindow ลงทะเบียนไว้ จะถูกเรียก (บน FX thread)
-     * ทุกครั้งที่เพลงเปลี่ยนอัตโนมัติ
-     */
     private Consumer<Song> onSongChanged;
 
     public void setOnSongChanged(Consumer<Song> callback) {
         this.onSongChanged = callback;
     }
 
-    // ── Constructor ─────────────────────────────────────────
+    //Constructor
     public PlayerService(Playlist playlist) {
         this.currentQueue = playlist;
         this.currentIndex = -1;
     }
 
-    // ── Getters ──────────────────────────────────────────────
-    public boolean isPlaying() {
-        return isPlaying;
-    }
+    //getter
+    public boolean isPlaying() { return isPlaying; }
+    public boolean isShuffling() { return shuffling; }
+    public int getLoopMode() { return loopMode; }
 
-    public boolean isShuffling() {
-        return shuffling;
-    }
-
-    public int getLoopMode() {
-        return loopMode;
-    }
-
-    // ── Core playback ─────────────────────────────────────────
-    /**
-     * เล่นเพลงที่ระบุ และผูก setOnEndOfMedia ให้อัตโนมัติ ตั้ง listener ก่อน
-     * play เพื่อไม่พลาดกรณีเพลงสั้นมาก
-     */
+    //play song
     public void playSong(Song song) {
-        if (song == null) {
-            return;
-        }
+        if (song == null) return;
 
-        // หยุดเพลงก่อนหน้า (ถ้าไม่ใช่เพลงเดิม)
         Song prev = getCurrentSong();
         if (prev != null && prev != song && prev.getMediaPlayer() != null) {
             prev.getMediaPlayer().stop();
         }
 
-        // อัปเดต index ใน queue
         if (currentQueue != null) {
             int idx = currentQueue.getSongs().indexOf(song);
             if (idx >= 0) {
@@ -74,28 +54,13 @@ public class PlayerService {
 
         MediaPlayer player = song.getMediaPlayer();
 
-        // ผูก setOnEndOfMedia ก่อน play เสมอ
+        //When Loop=2
+        player.setCycleCount(loopMode == 2 ? MediaPlayer.INDEFINITE : 1);
         player.setOnEndOfMedia(() -> {
-            if (loopMode == 2) {
-                // Loop one — เริ่มใหม่ + แจ้ง HomeWindow rebind progress
-                Platform.runLater(() -> {
-                    player.seek(player.getStartTime());
-                    player.play();
-                    if (onSongChanged != null) {
-                        onSongChanged.accept(song);
-                    }
-                });
-                return;
-            }
-
-            // ไปเพลงถัดไป
             Song nextSong = nextInternal();
             if (nextSong != null) {
-                // แจ้ง HomeWindow บน FX thread เพื่ออัปเดต UI
                 Platform.runLater(() -> {
-                    if (onSongChanged != null) {
-                        onSongChanged.accept(nextSong);
-                    }
+                    if (onSongChanged != null) onSongChanged.accept(nextSong);
                 });
             } else {
                 isPlaying = false;
@@ -106,19 +71,17 @@ public class PlayerService {
         isPlaying = true;
     }
 
+    //what playlist play
     public void playPlaylist(Playlist playlist, int startIndex) {
-        if (playlist == null || playlist.getSongs().isEmpty()) {
-            return;
-        }
+        if (playlist == null || playlist.getSongs().isEmpty()) return;
         currentQueue = playlist;
         currentIndex = startIndex;
         playSong(playlist.getSongs().get(startIndex));
     }
 
+    //what Library play
     public void playLibrary(List<Song> songs, Song start) {
-        if (songs == null || songs.isEmpty()) {
-            return;
-        }
+        if (songs == null || songs.isEmpty()) return;
 
         Song prev = getCurrentSong();
         if (prev != null && prev.getMediaPlayer() != null) {
@@ -129,22 +92,16 @@ public class PlayerService {
         queue.getSongs().addAll(songs);
         currentQueue = queue;
         currentIndex = songs.indexOf(start);
-        if (currentIndex < 0) {
-            currentIndex = 0;
-        }
+        if (currentIndex < 0) currentIndex = 0;
 
         playSong(queue.getSongs().get(currentIndex));
     }
 
     public void togglePlayPause() {
         Song currentSong = getCurrentSong();
-        if (currentSong == null) {
-            return;
-        }
+        if (currentSong == null) return;
         MediaPlayer player = currentSong.getMediaPlayer();
-        if (player == null) {
-            return;
-        }
+        if (player == null) return;
 
         if (player.getStatus() == MediaPlayer.Status.PLAYING) {
             player.pause();
@@ -155,29 +112,24 @@ public class PlayerService {
         }
     }
 
-    // ── Navigation ────────────────────────────────────────────
-    /**
-     * เรียกจากปุ่ม ⏭ ใน HomeWindow
-     */
-    public Song next() {
-        return nextInternal();
-    }
+    //next
+    public Song next() { return nextInternal(); }
 
-    /**
-     * ใช้ภายใน — เปลี่ยนเพลงถัดไปและ play ทันที คืนค่า Song ที่เล่นอยู่
-     */
+    //nextSong
     private Song nextInternal() {
-        if (currentQueue == null) {
-            return null;
-        }
+        if (currentQueue == null) return null;
         List<Song> songs = currentQueue.getSongs();
-        if (songs.isEmpty()) {
-            return null;
-        }
+        if (songs.isEmpty()) return null;
 
         Song current = getCurrentSong();
         if (current != null && current.getMediaPlayer() != null) {
             current.getMediaPlayer().stop();
+        }
+
+        // loopMode 2
+        if (loopMode == 2) {
+            if (current != null) playSong(current);
+            return current;
         }
 
         if (shuffling) {
@@ -201,25 +153,24 @@ public class PlayerService {
         }
 
         Song nextSong = getCurrentSong();
-        if (nextSong != null) {
-            playSong(nextSong); // playSong จะผูก setOnEndOfMedia ใหม่
-        }
+        if (nextSong != null) playSong(nextSong);
         return nextSong;
     }
 
+    //prev
     public Song previous() {
-        if (currentQueue == null) {
-            return null;
-        }
+        if (currentQueue == null) return null;
         List<Song> songs = currentQueue.getSongs();
-        if (songs.isEmpty()) {
-            return null;
-        }
+        if (songs.isEmpty()) return null;
 
         Song current = getCurrentSong();
         if (current != null && current.getMediaPlayer() != null) {
             current.getMediaPlayer().stop();
         }
+            if (loopMode == 2) {
+        if (current != null) playSong(current);
+        return current;
+    }
 
         currentIndex--;
         if (currentIndex < 0) {
@@ -233,12 +184,11 @@ public class PlayerService {
         }
 
         Song prev = getCurrentSong();
-        if (prev != null) {
-            playSong(prev);
-        }
+        if (prev != null) playSong(prev);
         return prev;
     }
 
+    //clear
     public void clearQueue() {
         Song current = getCurrentSong();
         if (current != null && current.getMediaPlayer() != null) {
@@ -249,33 +199,38 @@ public class PlayerService {
         isPlaying = false;
     }
 
-    // ── Toggle ────────────────────────────────────────────────
+    //looptoggle
     public void toggleLoop() {
         loopMode = (loopMode + 1) % 3;
         looping = loopMode > 0;
+
+        MediaPlayer player = getMediaPlayer();
+        if (player != null) {
+            if (loopMode == 2) {
+                player.setCycleCount(MediaPlayer.INDEFINITE);
+            } else {
+                player.setCycleCount(1);
+            }
+        }
     }
 
-    public void toggleShuffle() {
-        shuffling = !shuffling;
-    }
+    public void toggleShuffle() { shuffling = !shuffling; }
 
-    // ── Query ────────────────────────────────────────────────
+    //getterSong
     public Song getCurrentSong() {
-        if (currentQueue == null) {
-            return null;
-        }
+        if (currentQueue == null) return null;
         List<Song> songs = currentQueue.getSongs();
-        if (songs.isEmpty() || currentIndex < 0 || currentIndex >= songs.size()) {
-            return null;
-        }
+        if (songs.isEmpty() || currentIndex < 0 || currentIndex >= songs.size()) return null;
         return songs.get(currentIndex);
     }
 
+    //getMediaPlayer
     public MediaPlayer getMediaPlayer() {
         Song current = getCurrentSong();
         return current == null ? null : current.getMediaPlayer();
     }
 
+    //setQueue
     public void setQueue(Playlist playlist) {
         this.currentQueue = playlist;
     }

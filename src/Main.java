@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import static javafx.application.Application.launch;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
@@ -6,17 +7,17 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-        // 1. Try to find the logo safely
+        //Try with Logo
         java.net.URL logoUrl = getClass().getResource("/pictures/logo.png");
 
-        // 2. Only load it if it actually exists!
+        //if-not-found
         if (logoUrl != null) {
             stage.getIcons().add(new Image(logoUrl.toExternalForm()));
         } else {
             System.out.println("⚠️ WARNING: Could not find /pictures/logo.png!");
         }
 
-        // 3. Start the Home Window
+        //Start
         HomeWindow home = new HomeWindow();
         home.show(stage);
     }

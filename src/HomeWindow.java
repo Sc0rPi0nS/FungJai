@@ -11,6 +11,7 @@ import java.net.URL;
 
 public class HomeWindow {
 
+    //Attribute
     private transient MediaPlayer videoPlayer;
     private PlayerService playerService;
     private Song currentSong;
@@ -30,45 +31,66 @@ public class HomeWindow {
 
     private Button play;
 
+    private MySongWindow mySongWindow;
+    private PlaylistWindow playlistWindow;
+    private MixForYouWindow mixForYouWindow;
     private About aboutWindow;
 
-    // เก็บ reference listener เพื่อ remove ก่อน bind ใหม่ ป้องกัน listener สะสม
+    //TimeListener
     private javafx.beans.value.ChangeListener<javafx.util.Duration> currentTimeListener;
-    private MediaPlayer boundPlayer; // player ที่ผูก listener อยู่ตอนนี้
+    private MediaPlayer boundPlayer;
 
+    //UI Stage
     public void show(Stage stage) {
 
+        //playSong
         libraryService = new LibraryService();
 
         playerService = new PlayerService(
                 libraryService.getLibrary().getAllSongs()
         );
 
-        // เมื่อเพลงเปลี่ยนอัตโนมัติ (จบ → ขึ้นถัดไป) ให้ HomeWindow อัปเดต UI
-        playerService.setOnSongChanged(newSong -> setSongInfo(newSong, currentPlaylist));
+        playerService.setOnSongChanged(newSong -> setSongInfo(newSong, currentPlaylist));   
 
+        //UI
         BorderPane root = new BorderPane();
         root.setPrefSize(600, 450);
         root.getStyleClass().add("root");
 
-        // ================= TOP =================
+        //MENU
         Button home = menuBtn("HOME", true);
         Button mySong = menuBtn("MYSONG", false);
         Button playlist = menuBtn("MYPLAYLIST", false);
         Button mix = menuBtn("MIXFORYOU", false);
-        Button themeBtn = new Button("🌙 Dark");//Button for Dark mode
+        Button themeBtn = new Button("🌙 Dark");
+        Button info = infoBtn();
         themeBtn.setStyle("-fx-background-color: #cccccc; -fx-font-weight: bold;");
 
-        mySong.setOnAction(e
-                -> new MySongWindow(this, libraryService).show(stage)
-        );
+        //MySongButton Action
+        mySong.setOnAction(e -> {
+            if (mySongWindow == null) {
+                mySongWindow = new MySongWindow(this, libraryService);
+            }
+            mySongWindow.show(stage);
+        });
 
-        // ⭐ pass libraryService so PlaylistWindow uses real Playlist objects
-        playlist.setOnAction(e -> new PlaylistWindow(this, libraryService).show(stage));
-        mix.setOnAction(e -> new MixForYouWindow(this, libraryService).show(stage));
+        //PlaylistButton Action
+        playlist.setOnAction(e -> {
+            if (playlistWindow == null) {
+                playlistWindow = new PlaylistWindow(this, libraryService);
+            }
+            playlistWindow.show(stage);
+        });
 
-        // ℹ About button
-        Button info = infoBtn();
+        //MixButton Action
+        mix.setOnAction(e -> {
+            if (mixForYouWindow == null) {
+                mixForYouWindow = new MixForYouWindow(this, libraryService);
+            }
+            mixForYouWindow.show(stage);
+        });
+
+        //Aboutbutton Action
         info.setOnAction(e -> {
             if (aboutWindow == null) {
                 aboutWindow = new About();
@@ -76,6 +98,7 @@ public class HomeWindow {
             aboutWindow.show(stage.getX(), stage.getY(), stage.getWidth());
         });
 
+        //MenuBox
         HBox menuBar = new HBox(15, home, mySong, playlist, mix, themeBtn, info);
         menuBar.setAlignment(Pos.CENTER);
         menuBar.setPadding(new Insets(4));
@@ -84,7 +107,7 @@ public class HomeWindow {
 
         root.setTop(menuBar);
 
-        // ================= CENTER =================
+        //TapeVideo and Song Info
         URL videoUrl = getClass().getResource("/pictures/tape.mp4");
         MediaView videoView = new MediaView();
         videoView.setFitWidth(370);
@@ -117,6 +140,7 @@ public class HomeWindow {
         HBox songLine = new HBox(6, song, new Label("–"), artist);
         songLine.setAlignment(Pos.CENTER);
 
+        //Eq Wave
         eqBars = new HBox(2);
         eqBars.setAlignment(Pos.CENTER);
 
@@ -132,7 +156,7 @@ public class HomeWindow {
 
         root.setCenter(center);
 
-        // ================= BOTTOM =================
+        //Button About Player
         Button lyrics = new Button("Lyrics");
         Button prev = new Button("⏮");
         play = new Button("▶");
@@ -141,6 +165,7 @@ public class HomeWindow {
         Button shuffle = new Button("🔀");
         Button replay = new Button("🔁");
 
+        //Other Button Style
         String ctrlBtnStyle
                 = "-fx-background-color:linear-gradient(to bottom,#f0f0f0,#d8d8d8,#c8c8c8);"
                 + "-fx-background-radius:6px;"
@@ -167,6 +192,7 @@ public class HomeWindow {
         replay.setStyle(ctrlBtnStyle);
         replay.setPrefSize(36, 36);
 
+        //Play Button Style
         play.setStyle(
                 "-fx-background-color:linear-gradient(to bottom,#f0f0f0,#d8d8d8,#c4c4c4);"
                 + "-fx-background-radius:50%;-fx-border-radius:50%;"
@@ -190,7 +216,7 @@ public class HomeWindow {
         HBox volumeBox = new HBox(4, volIcon, volume);
         volumeBox.setAlignment(Pos.CENTER);
 
-// ⭐ รวมทุกปุ่มไว้ด้วยกัน
+        //Button Box
         HBox controls = new HBox(6, lyrics, shuffle, prev, play, next, replay, volumeBox);
         controls.setAlignment(Pos.CENTER);
         controls.setPadding(new Insets(0, 0, 0, 20));
@@ -198,6 +224,7 @@ public class HomeWindow {
         BorderPane controlBar = new BorderPane();
         controlBar.setCenter(controls);
 
+        //Progress Bars
         progress = new Slider();
         progress.setMin(0);
         progress.setPrefWidth(350);
@@ -219,6 +246,7 @@ public class HomeWindow {
             }
         });
 
+        //Time Count
         time = new Label("00:00");
 
         HBox progressBar = new HBox(10, time, progressStack);
@@ -229,7 +257,8 @@ public class HomeWindow {
 
         root.setBottom(bottom);
 
-        // ================= BUTTON EVENTS =================
+        //Button Action
+        //Play Button
         play.setOnAction(e -> {
 
             if (playerService.getCurrentSong() == null) {
@@ -251,6 +280,7 @@ public class HomeWindow {
             }
         });
 
+        //Next Button
         next.setOnAction(e -> {
             Song s = playerService.next();
             if (s != null) {
@@ -258,6 +288,7 @@ public class HomeWindow {
             }
         });
 
+        //Prev Button
         prev.setOnAction(e -> {
             Song s = playerService.previous();
             if (s != null) {
@@ -265,6 +296,7 @@ public class HomeWindow {
             }
         });
 
+        //Shuffle Button
         shuffle.setOnAction(e -> {
             playerService.toggleShuffle();
             if (playerService.isShuffling()) {
@@ -274,21 +306,24 @@ public class HomeWindow {
             }
         });
 
+        //Replay Button
         replay.setOnAction(e -> {
             playerService.toggleLoop();
             int mode = playerService.getLoopMode();
+            System.out.println("DEBUG loopMode = " + mode);
             if (mode == 0) {
                 replay.setText("🔁");
-                replay.setStyle("");
+                replay.setStyle(ctrlBtnStyle);
             } else if (mode == 1) {
                 replay.setText("🔁");
-                replay.setStyle("-fx-text-fill:green;");
+                replay.setStyle(ctrlBtnStyle + "-fx-text-fill:green;");
             } else if (mode == 2) {
                 replay.setText("🔂");
-                replay.setStyle("-fx-text-fill:green;");
+                replay.setStyle(ctrlBtnStyle + "-fx-text-fill:green;");
             }
         });
 
+        //Lyrics Button
         lyrics.setOnAction(e -> {
             Song current = playerService.getCurrentSong();
             if (current != null) {
@@ -302,19 +337,19 @@ public class HomeWindow {
             }
         });
 
-        // ================= SCENE =================
+        //Dark-Light Mode
         Scene scene = new Scene(root);
 
-        // 1. Load the light theme by default
+        //catch
         try {
             scene.getStylesheets().add(getClass().getResource("/css/light-theme.css").toExternalForm());
         } catch (Exception ex) {
             System.out.println("Could not find light-theme.css! Make sure it is in the right folder.");
         }
 
-        // 2. Make the button swap the themes when clicked
+        //ThemeButton Action
         themeBtn.setOnAction(e -> {
-            scene.getStylesheets().clear(); // Remove the current theme
+            scene.getStylesheets().clear();
 
             if (themeBtn.getText().equals("🌙 Dark")) {
                 // Switch to Dark
@@ -341,7 +376,7 @@ public class HomeWindow {
         });
     }
 
-    // ================= MENU BUTTON =================
+    //Menu Styles
     private Button menuBtn(String text, boolean active) {
         Button b = new Button(text);
         b.getStyleClass().add("menu-btn");
@@ -354,140 +389,7 @@ public class HomeWindow {
         return b;
     }
 
-    // ================= EQ =================
-    private void setupSpectrum(MediaPlayer player) {
-
-        player.setAudioSpectrumInterval(0.05);
-        player.setAudioSpectrumNumBands(32);
-
-        player.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
-
-            javafx.application.Platform.runLater(() -> {
-
-                for (int i = 0; i < magnitudes.length && i < eqBars.getChildren().size(); i++) {
-
-                    Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
-
-                    double value = magnitudes[i] + 60; // normalize
-
-                    if (i > 12 && i < 25) {
-                        value *= 2;
-                    }
-
-                    double height = Math.max(5, value * 2);
-
-                    bar.setScaleY(height / 20.0);
-                }
-
-            });
-
-        });
-    }
-
-    private void updateProgressColor() {
-
-        double percent = (progress.getValue() - progress.getMin())
-                / (progress.getMax() - progress.getMin()) * 100;
-
-        Node track = progress.lookup(".track");
-
-        if (track != null) {
-            track.setStyle(String.format(
-                    "-fx-background-color: linear-gradient(to right, #4773a1 %.2f%%, #cccccc %.2f%%);",
-                    percent, percent
-            ));
-        }
-    }
-
-    private void bindPlayer(MediaPlayer player) {
-
-        // ── ลบ listener เก่าออกก่อนเสมอ ป้องกัน listener สะสมหลาย song ──
-        if (boundPlayer != null && currentTimeListener != null) {
-            boundPlayer.currentTimeProperty().removeListener(currentTimeListener);
-        }
-
-        boundPlayer = player;
-
-        currentTimeListener = (obs, oldTime, newTime) -> {
-            // อัปเดต progress เฉพาะตอนที่ user ไม่ได้ลาก slider
-            if (!progress.isValueChanging()) {
-                double seconds = newTime.toSeconds();
-                progress.setValue(seconds);
-
-                int min = (int) seconds / 60;
-                int sec = (int) seconds % 60;
-                time.setText(String.format("%02d:%02d", min, sec));
-
-                updateProgressColor();
-            }
-        };
-
-        player.currentTimeProperty().addListener(currentTimeListener);
-
-        // setMax — ถ้า player ready แล้วก็ set ทันที ถ้ายังไม่ ready รอ setOnReady
-        Runnable applyMax = () -> {
-            double total = player.getTotalDuration() != null
-                    ? player.getTotalDuration().toSeconds() : 0;
-            if (total > 0) {
-                progress.setMax(total);
-            }
-        };
-
-        MediaPlayer.Status status = player.getStatus();
-        if (status == MediaPlayer.Status.READY
-                || status == MediaPlayer.Status.PLAYING
-                || status == MediaPlayer.Status.PAUSED
-                || status == MediaPlayer.Status.STALLED) {
-            applyMax.run();
-        } else {
-            player.setOnReady(applyMax);
-        }
-    }
-
-    // ================= SET SONG =================
-    public void setSongInfo(Song song, Playlist playlist) {
-
-        if (song == null) {
-            videoPlayer.stop();
-            return;
-        }
-    // ✅ เพิ่มตรงนี้ — หลัง null check ก่อนบรรทัดอื่น
-    libraryService.printMediaInfo((MediaItem) song);  // รับ Abstract Class
-    libraryService.printMediaInfo((Playable) song);   // รับ Interface
-        this.currentSong = song;
-        this.currentPlaylist = playlist;
-
-        this.song.setText(song.getTitle());
-        this.artist.setText(song.getArtist());
-
-        if (playlist != null) {
-            playerService.setQueue(playlist);
-        }
-
-        playerService.playSong(song);
-
-        MediaPlayer player = song.getMediaPlayer();
-
-        // รีเซ็ต progress ก่อนเสมอ เพื่อป้องกัน bar ค้างจากเพลงก่อนหน้า
-        progress.setValue(0);
-        progress.setMax(100); // placeholder จนกว่า bindPlayer จะ setMax จริง
-
-        setupSpectrum(player);
-        bindPlayer(player);
-
-        play.setText("⏸");
-        if (videoPlayer != null) {
-            videoPlayer.stop();
-            videoPlayer.play();
-        }
-
-    }
-
-    public PlayerService getPlayerService() {
-        return playerService;
-    }
-
-// ================= INFO BUTTON =================
+    //Info Style
     private Button infoBtn() {
         Button b = new Button("ℹ");
         b.setPrefWidth(32);
@@ -522,6 +424,101 @@ public class HomeWindow {
         return b;
     }
 
+    //Eq setup
+    private void setupSpectrum(MediaPlayer player) {
+
+        player.setAudioSpectrumInterval(0.05);
+        player.setAudioSpectrumNumBands(32);
+
+        player.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
+
+            javafx.application.Platform.runLater(() -> {
+
+                for (int i = 0; i < magnitudes.length && i < eqBars.getChildren().size(); i++) {
+
+                    Rectangle bar = (Rectangle) eqBars.getChildren().get(i);
+
+                    double value = magnitudes[i] + 60; // normalize
+
+                    if (i > 12 && i < 25) {
+                        value *= 2;
+                    }
+
+                    double height = Math.max(5, value * 2);
+
+                    bar.setScaleY(height / 20.0);
+                }
+
+            });
+
+        });
+    }
+
+    //ColorProgress
+    private void updateProgressColor() {
+
+        double percent = (progress.getValue() - progress.getMin())
+                / (progress.getMax() - progress.getMin()) * 100;
+
+        Node track = progress.lookup(".track");
+
+        if (track != null) {
+            track.setStyle(String.format(
+                    "-fx-background-color: linear-gradient(to right, #4773a1 %.2f%%, #cccccc %.2f%%);",
+                    percent, percent
+            ));
+        }
+    }
+
+    //Time Sync Song
+    private void bindPlayer(MediaPlayer player) {
+
+        if (boundPlayer != null && currentTimeListener != null) {
+            boundPlayer.currentTimeProperty().removeListener(currentTimeListener);
+        }
+
+        boundPlayer = player;
+
+        currentTimeListener = (obs, oldTime, newTime) -> {
+            if (!progress.isValueChanging()) {
+                double seconds = newTime.toSeconds();
+                progress.setValue(seconds);
+
+                int min = (int) seconds / 60;
+                int sec = (int) seconds % 60;
+                time.setText(String.format("%02d:%02d", min, sec));
+
+                updateProgressColor();
+            }
+        };
+
+        player.currentTimeProperty().addListener(currentTimeListener);
+
+        Runnable applyMax = () -> {
+            double total = player.getTotalDuration() != null
+                    ? player.getTotalDuration().toSeconds() : 0;
+            if (total > 0) {
+                progress.setMax(total);
+            }
+        };
+
+        MediaPlayer.Status status = player.getStatus();
+        if (status == MediaPlayer.Status.READY
+                || status == MediaPlayer.Status.PLAYING
+                || status == MediaPlayer.Status.PAUSED
+                || status == MediaPlayer.Status.STALLED) {
+            applyMax.run();
+        } else {
+            player.setOnReady(applyMax);
+        }
+    }
+
+    //getter PlayerService
+    public PlayerService getPlayerService() {
+        return playerService;
+    }
+
+    //Mini Stage When Minimize
     private void showMiniPlayer(Stage mainStage) {
         if (miniStage != null && miniStage.isShowing()) {
             return;
@@ -530,7 +527,7 @@ public class HomeWindow {
         miniStage = new Stage();
         miniStage.initStyle(StageStyle.UNDECORATED);
 
-        // ================= LABEL =================
+        //Label Title And Artist
         Label miniTitle = new Label(currentSong != null ? currentSong.getTitle() : "No song");
         Label miniArtist = new Label(currentSong != null ? currentSong.getArtist() : "—");
 
@@ -540,7 +537,7 @@ public class HomeWindow {
         miniTitle.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
         miniArtist.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
 
-        // ================= MARQUEE =================
+        //Marquee Title
         StackPane titleClip = new StackPane(miniTitle);
         titleClip.setMinSize(160, 22);
         titleClip.setMaxSize(160, 22);
@@ -578,7 +575,7 @@ public class HomeWindow {
             }
         });
 
-        // ================= PROGRESS =================
+        //Mini Progress Bar
         Slider miniProgress = new Slider();
         miniProgress.setMin(progress.getMin());
         miniProgress.setMax(progress.getMax() > 0 ? progress.getMax() : 100);
@@ -615,7 +612,7 @@ public class HomeWindow {
             }
         });
 
-        // ================= BUTTON STYLE =================
+        //Mini Button Style
         String btnStyle
                 = "-fx-background-color: transparent;"
                 + "-fx-font-size: 14px;"
@@ -645,7 +642,7 @@ public class HomeWindow {
             b.setOnMouseExited(e -> b.setStyle(btnStyle));
         }
 
-        // ⭐ PLAY BUTTON (เด่น)
+        //Mini Play Button Style
         miniPlayBtn.setStyle(
                 "-fx-background-color: #4773a1;"
                 + "-fx-text-fill: white;"
@@ -672,7 +669,7 @@ public class HomeWindow {
                         + "-fx-padding: 6 10 6 10;"
                 ));
 
-        // ================= BUTTON ACTION =================
+        //Mini Button Action
         miniPlayBtn.setOnAction(e -> {
             playerService.togglePlayPause();
             boolean playing = playerService.isPlaying();
@@ -716,7 +713,7 @@ public class HomeWindow {
 
         miniRestore.setOnAction(e -> mainStage.setIconified(false));
 
-        // ================= LAYOUT =================
+        //MiniStage Layout
         HBox controls = new HBox(6, miniPrev, miniPlayBtn, miniNext, miniRestore);
         controls.setAlignment(Pos.CENTER_RIGHT);
         controls.setMinWidth(Region.USE_PREF_SIZE);
@@ -742,7 +739,6 @@ public class HomeWindow {
                 + "-fx-background-radius: 12;"
         );
 
-        // ================= POSITION =================
         Rectangle2D screen = javafx.stage.Screen.getPrimary().getVisualBounds();
         miniStage.setX(screen.getMaxX() - 350);
         miniStage.setY(screen.getMaxY() - 130);
@@ -756,6 +752,7 @@ public class HomeWindow {
         miniStage.show();
     }
 
+    //Mini Progress Bar Sync Song
     private void updateMiniProgressColor(Slider miniProgress) {
         if (miniProgress.getMax() == 0) {
             return;
@@ -775,4 +772,41 @@ public class HomeWindow {
         });
     }
 
+    //Set Main Song To Play
+    public void setSongInfo(Song song, Playlist playlist) {
+        if (song == null) {
+            videoPlayer.stop();
+            return;
+        }
+
+        libraryService.printMediaInfo((MediaItem) song);
+        libraryService.printMediaInfo((Playable) song);
+
+        this.currentSong = song;
+        this.currentPlaylist = playlist;
+
+        this.song.setText(song.getTitle());
+        this.artist.setText(song.getArtist());
+
+        if (playlist != null) {
+            playerService.setQueue(playlist);
+        } else {
+            playerService.playLibrary(
+                    libraryService.getLibrary().getMySongs(), song
+            );
+            MediaPlayer player = song.getMediaPlayer();
+            progress.setValue(0);
+            progress.setMax(100);
+            setupSpectrum(player);
+            bindPlayer(player);
+            play.setText("⏸");
+            if (videoPlayer != null) {
+                videoPlayer.stop();
+                videoPlayer.play();
+            }
+            return;
+        }
+
+        playerService.playSong(song);
+    }
 }

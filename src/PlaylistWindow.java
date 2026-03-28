@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public class PlaylistWindow {
 
-    // ── theme ─────────────────────────────────────────────────
+    // theme 
     private static final String BG = "#f5f5f5";
     private static final String PANEL = "#ffffff";
     private static final String BORDER = "#e0e0e0";
@@ -30,10 +30,11 @@ public class PlaylistWindow {
     private static final String C_TAPE = "#3d2b1f";
     private static final String C_LABEL = "#3a5068";
 
-    // ── state ─────────────────────────────────────────────────
+    // state 
     private HomeWindow home;
     private LibraryService libraryService;
     private ObservableList<Playlist> playlists = FXCollections.observableArrayList();
+    private Stage stage;
 
     public PlaylistWindow(HomeWindow home, LibraryService libraryService) {
         this.home = home;
@@ -42,16 +43,20 @@ public class PlaylistWindow {
 
     }
 
-    // keep old no-arg constructor so HomeWindow still compiles,
-    // but it won't have a libraryService — we guard against null below
-    // ── entry ─────────────────────────────────────────────────
+    //show UI
     public void show(Stage owner) {
-        Stage stage = new Stage();
+    if (stage != null && stage.isShowing()) {
+            stage.requestFocus();
+            return;
+        }
+        stage = new Stage();
+
         stage.initOwner(owner);
         stage.initModality(Modality.NONE);
         openWindow(stage);
     }
 
+    //windowOpen
     private void openWindow(Stage stage) {
         stage.setTitle("My Playlist");
         stage.setResizable(false);
@@ -59,7 +64,7 @@ public class PlaylistWindow {
         stage.show();
     }
 
-    // ── main pane ─────────────────────────────────────────────
+    // main pane 
     private BorderPane buildMainPane(Stage owner) {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color:" + BG + ";");
@@ -68,6 +73,7 @@ public class PlaylistWindow {
         return root;
     }
 
+    
     private HBox buildTopBar() {
         Label title = new Label("MYPLAYLIST");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 13));
@@ -80,7 +86,6 @@ public class PlaylistWindow {
     }
 
     private VBox buildCenterArea(Stage owner) {
-        // ── card row (scrollable) ──────────────────────────────
         HBox cardPane = new HBox(12);
         cardPane.setAlignment(Pos.CENTER_LEFT);
         cardPane.setPadding(new Insets(16, 20, 16, 20));
@@ -98,7 +103,7 @@ public class PlaylistWindow {
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setStyle("-fx-background-color:transparent;-fx-background:transparent;");
 
-        // ── bottom buttons ─────────────────────────────────────
+        // bottom buttons 
         Button btnCreate = flatBtn("＋  Create Playlist");
         btnCreate.setOnAction(e -> {
             openCreateDialog(owner);
@@ -162,7 +167,7 @@ public class PlaylistWindow {
         return card;
     }
 
-    // ── cassette drawing ──────────────────────────────────────
+    // cassette drawing
     private Pane buildCassette(double w, double h) {
         Pane p = new Pane();
         p.setPrefSize(w, h);
@@ -224,7 +229,7 @@ public class PlaylistWindow {
         return c;
     }
 
-    // ── Create dialog ─────────────────────────────────────────
+    // Create dialog
     private void openCreateDialog(Stage owner) {
         Stage dlg = makeDialog(owner, "Create Playlist");
         TextField tfTitle = inputField("Playlist Name");
@@ -250,7 +255,7 @@ public class PlaylistWindow {
         dlg.showAndWait();
     }
 
-    // ── Detail window (songs inside a playlist) ───────────────
+    // Detail window (songs inside a playlist)
     private void openDetailWindow(Stage owner, Playlist playlist) {
         Stage win = makeDialog(owner, playlist.getName());
 
@@ -261,7 +266,7 @@ public class PlaylistWindow {
 
         TableView<SongRow> table = buildSongTable(win, playlist, songRows);
 
-        // ── "Add Song" opens MySong picker ────────────────────
+        // Add Song opens MySong picker
         Button btnAdd = flatBtn("＋  Add Song");
         Button btnEdit = flatBtn("✎  Edit Playlist");
         Button btnDelete = flatBtn("🗑  Delete Playlist");
@@ -382,7 +387,7 @@ public class PlaylistWindow {
         return table;
     }
 
-    // ── Add Song picker (lists MySong library) ────────────────
+    // Add Song picker (lists MySong library)
     private void openAddSongPicker(Stage owner, Playlist playlist, ObservableList<SongRow> rows) {
         if (libraryService == null) {
             alert("LibraryService not available.");
@@ -450,7 +455,7 @@ public class PlaylistWindow {
         dlg.showAndWait();
     }
 
-    // ── Edit playlist name/desc ───────────────────────────────
+    // Edit playlist name/desc
     private void openEditDialog(Stage owner, Playlist playlist) {
         Stage dlg = makeDialog(owner, "Edit Playlist");
         TextField tfName = inputField(playlist.getName());
@@ -478,7 +483,7 @@ public class PlaylistWindow {
         dlg.showAndWait();
     }
 
-    // ── UI helpers ────────────────────────────────────────────
+    // UI helpers 
     private HBox buildSubBar(String text) {
         Label l = new Label(text);
         l.setFont(Font.font("Arial", FontWeight.BOLD, 12));

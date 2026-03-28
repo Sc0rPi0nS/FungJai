@@ -1,12 +1,14 @@
+
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.*;
 
 public class About {
+
     private JFrame winFrame;
     private JDesktopPane desktopPane;
-    
+
     //Attribute JTable
     private final String[] columnNames = {"Student ID", "Name"};
     private final Object[][] memberData = {
@@ -20,7 +22,7 @@ public class About {
         {"68070175", "Weerachai Lorpa"},
         {"68070208", "Inthuch Thipwet"}
     };
-    
+
     //Font color
     private Font mainFont;
     private Font titleFont;
@@ -28,7 +30,7 @@ public class About {
     private final Color PANEL_BG = Color.WHITE;
     private final Color TEXT_DARK = new Color(44, 62, 80);
     private final Color ACCENT_COLOR = new Color(41, 128, 185);
-    
+
     //Header
     private JLabel projTitle;
     private JLabel courseName;
@@ -36,11 +38,11 @@ public class About {
     private JLabel lblPrepared;
     private JLabel lblLibraries;
     private JLabel lblFeatures;
-    
+
     //number label
     private JLabel facultyName;
     private JLabel uniName;
-    
+
     //Library
     private JLabel libFxHeader;
     private JLabel libFxUI;
@@ -51,7 +53,7 @@ public class About {
     private JLabel libSwingDesc;
     private JLabel libStdHeader;
     private JLabel libStdDesc;
-    
+
     //Feature
     private JLabel featDesc;
     private JLabel featHome;
@@ -59,10 +61,10 @@ public class About {
     private JLabel featPlaylist;
     private JLabel featMix;
     private JLabel featOOP;
-    
+
     //Thank You
     private JLabel thankYou;
-    
+
     //Constructor
     public About() {
         try {
@@ -74,7 +76,7 @@ public class About {
         initComponents();
         setupWindow();
     }
-    
+
     private void initFonts() {
         try {
             mainFont = Font.createFont(Font.TRUETYPE_FONT, new java.io.File("Kanit-Regular.ttf"));
@@ -108,10 +110,10 @@ public class About {
         libFxData = createLabel("  - จัดการข้อมูล: javafx.collections, beans.property", mainFont.deriveFont(13f), TEXT_DARK);
         libFxGraphic = createLabel("  - รูปร่าง/สี/กราฟิก: javafx.scene.paint, shape, canvas", mainFont.deriveFont(13f), TEXT_DARK);
         libFxMedia = createLabel("  - มัลติมีเดีย/แอนิเมชัน: javafx.scene.media, animation", mainFont.deriveFont(13f), TEXT_DARK);
-        
+
         libSwingHeader = createLabel("2. Java Swing และ AWT (GUI สำหรับหน้า About)", mainFont.deriveFont(Font.BOLD, 14f), TEXT_DARK);
         libSwingDesc = createLabel("  - แพ็กเกจ: javax.swing.*, java.awt.*", mainFont.deriveFont(13f), TEXT_DARK);
-        
+
         libStdHeader = createLabel("3. Java Standard Libraries (Backend & Logic)", mainFont.deriveFont(Font.BOLD, 14f), TEXT_DARK);
         libStdDesc = createLabel("  - Collections, UUID, LocalDateTime, I/O Stream", mainFont.deriveFont(13f), TEXT_DARK);
 
@@ -133,24 +135,24 @@ public class About {
         //Windows Frame
         winFrame = new JFrame("About us - FungJai");
         winFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        winFrame.setSize(1000, 820); 
+        winFrame.setSize(1000, 820);
         winFrame.setLayout(new BorderLayout());
 
         desktopPane = new JDesktopPane();
         desktopPane.setBackground(BG_COLOR);
-        
+
         //Header for InternalFrame
         JPanel headerTextPanel = new JPanel(new GridLayout(3, 1, 0, 8));
         headerTextPanel.setOpaque(false);
-        
+
         projTitle.setHorizontalAlignment(SwingConstants.CENTER);
         courseName.setHorizontalAlignment(SwingConstants.CENTER);
         teacherName.setHorizontalAlignment(SwingConstants.CENTER);
-        
+
         headerTextPanel.add(projTitle);
         headerTextPanel.add(courseName);
         headerTextPanel.add(teacherName);
-        
+
         headerTextPanel.setBounds(0, 30, 1000, 100);
         desktopPane.add(headerTextPanel, JLayeredPane.DEFAULT_LAYER);
 
@@ -159,17 +161,17 @@ public class About {
         JPanel memberPanel = new JPanel(new BorderLayout(0, 10));
         memberPanel.setBackground(PANEL_BG);
         memberPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
-        
+
         JPanel topPrepPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         topPrepPanel.setBackground(PANEL_BG);
         topPrepPanel.add(lblPrepared);
         memberPanel.add(topPrepPanel, BorderLayout.NORTH);
 
-                //JTable Attribute
+        //JTable Attribute
         DefaultTableModel tableModel = new DefaultTableModel(memberData, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; 
+                return false;
             }
         };
 
@@ -177,9 +179,9 @@ public class About {
         memberTable.setFont(mainFont.deriveFont(14f));
         memberTable.setForeground(TEXT_DARK);
         memberTable.setBackground(PANEL_BG);
-        memberTable.setRowHeight(25); 
+        memberTable.setRowHeight(25);
         memberTable.setShowGrid(true);
-        memberTable.setGridColor(new Color(230, 230, 230)); 
+        memberTable.setGridColor(new Color(230, 230, 230));
         memberTable.setSelectionBackground(ACCENT_COLOR);
         memberTable.setSelectionForeground(Color.WHITE);
 
@@ -213,7 +215,7 @@ public class About {
 
         memberPanel.add(tableContainer, BorderLayout.CENTER);
         memberPanel.add(instPanel, BorderLayout.SOUTH);
-        
+
         memberFrame.add(memberPanel);
         memberFrame.setBounds(30, 140, 450, 575);
         memberFrame.setVisible(true);
@@ -228,7 +230,7 @@ public class About {
         lblLibraries.setAlignmentX(Component.LEFT_ALIGNMENT);
         libInner.add(lblLibraries);
         libInner.add(Box.createRigidArea(new Dimension(0, 15)));
-        
+
         libInner.add(libFxHeader);
         libInner.add(libFxUI);
         libInner.add(libFxData);
@@ -240,7 +242,7 @@ public class About {
         libInner.add(Box.createRigidArea(new Dimension(0, 10)));
         libInner.add(libStdHeader);
         libInner.add(libStdDesc);
-        
+
         libFrame.add(libInner);
         libFrame.setBounds(500, 140, 450, 280);
         libFrame.setVisible(true);
@@ -255,7 +257,7 @@ public class About {
         lblFeatures.setAlignmentX(Component.LEFT_ALIGNMENT);
         featInner.add(lblFeatures);
         featInner.add(Box.createRigidArea(new Dimension(0, 15)));
-        
+
         featInner.add(featDesc);
         featInner.add(Box.createRigidArea(new Dimension(0, 15)));
         featInner.add(featHome);
@@ -268,25 +270,16 @@ public class About {
         featFrame.setBounds(500, 435, 450, 280);
         featFrame.setVisible(true);
         desktopPane.add(featFrame);
-        
+
         //Thankyou
         thankYou.setHorizontalAlignment(SwingConstants.CENTER);
-        thankYou.setBounds(0, 720, 1000, 50); 
+        thankYou.setBounds(0, 720, 1000, 50);
         desktopPane.add(thankYou, JLayeredPane.DEFAULT_LAYER);
 
         winFrame.add(desktopPane, BorderLayout.CENTER);
-        // ไม่ setLocationRelativeTo และไม่ setVisible ที่นี่
-        // ให้ show() จัดตำแหน่งและแสดงหน้าต่างแทน
     }
 
-    /**
-     * เปิดหน้า About ข้างๆ หน้าต่างหลัก (HomeWindow)
-     * ถ้าเรียกซ้ำขณะที่หน้าต่างเปิดอยู่แล้ว จะ bring to front แทน
-     *
-     * @param ownerX  ค่า X ของหน้าต่าง HomeWindow  (stage.getX())
-     * @param ownerY  ค่า Y ของหน้าต่าง HomeWindow  (stage.getY())
-     * @param ownerW  ความกว้างของ HomeWindow        (stage.getWidth())
-     */
+    //Show UI
     public void show(double ownerX, double ownerY, double ownerW) {
         if (winFrame == null) {
             initFonts();
@@ -300,11 +293,9 @@ public class About {
             return;
         }
 
-        // วางตำแหน่งข้างขวาของ HomeWindow
         int aboutX = (int) (ownerX + ownerW + 10);
         int aboutY = (int) ownerY;
 
-        // ถ้าออกนอกจอให้เลื่อนมาทางซ้ายแทน
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         if (aboutX + winFrame.getWidth() > screen.width) {
             aboutX = (int) (ownerX - winFrame.getWidth() - 10);
@@ -314,6 +305,7 @@ public class About {
         winFrame.setVisible(true);
     }
 
+    //create Label
     private JLabel createLabel(String text, Font font, Color color) {
         JLabel label = new JLabel(text);
         label.setFont(font);

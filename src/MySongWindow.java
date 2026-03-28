@@ -1,3 +1,4 @@
+
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,6 +16,7 @@ public class MySongWindow {
 
     private TableView<SongRow> table;
     private ObservableList<SongRow> tableData;
+    private Stage stage;
 
     public MySongWindow(HomeWindow home, LibraryService libraryService) {
         this.home = home;
@@ -22,7 +24,11 @@ public class MySongWindow {
     }
 
     public void show(Stage owner) {
-        Stage stage = new Stage();
+        if (stage != null && stage.isShowing()) {
+            stage.requestFocus();
+            return;
+        }
+        stage = new Stage();
         stage.initOwner(owner);
 
         tableData = FXCollections.observableArrayList();
@@ -116,7 +122,7 @@ public class MySongWindow {
                     s.getTitle(),
                     s.getArtist(),
                     s.getFilePathMp3(),
-                    s.getDuration(),           // ใช้ค่าที่ save ไว้ ถ้า > 0 แสดงทันที
+                    s.getDuration(), // ใช้ค่าที่ save ไว้ ถ้า > 0 แสดงทันที
                     s.getDateAddedString()
             );
             tableData.add(row);
@@ -132,8 +138,8 @@ public class MySongWindow {
                         long sec = secs % 60;
                         s.setDuration(secs);
                         libraryService.forceSave();
-                        javafx.application.Platform.runLater(() ->
-                            row.timeProperty().set(min + ":" + String.format("%02d", sec))
+                        javafx.application.Platform.runLater(()
+                                -> row.timeProperty().set(min + ":" + String.format("%02d", sec))
                         );
                     }
                 });
@@ -166,11 +172,15 @@ public class MySongWindow {
         artistField.setPromptText("Artist");
 
         titleField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) titleField.setText(newVal.replace(" ", "-"));
+            if (newVal.contains(" ")) {
+                titleField.setText(newVal.replace(" ", "-"));
+            }
         });
 
         artistField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) artistField.setText(newVal.replace(" ", "-"));
+            if (newVal.contains(" ")) {
+                artistField.setText(newVal.replace(" ", "-"));
+            }
         });
 
         Label fileLabel = new Label("No file selected");
@@ -223,8 +233,8 @@ public class MySongWindow {
                         // บันทึก duration กลับเข้า Song แล้ว save ลง library ทันที
                         song.setDuration(secs);
                         libraryService.forceSave();
-                        javafx.application.Platform.runLater(() ->
-                            row.timeProperty().set(min + ":" + String.format("%02d", sec))
+                        javafx.application.Platform.runLater(()
+                                -> row.timeProperty().set(min + ":" + String.format("%02d", sec))
                         );
                     }
                 });
@@ -254,7 +264,9 @@ public class MySongWindow {
                 .findFirst()
                 .orElse(null);
 
-        if (song == null) return;
+        if (song == null) {
+            return;
+        }
 
         Stage popup = new Stage();
         popup.setTitle("Edit Song");
@@ -263,10 +275,14 @@ public class MySongWindow {
         TextField artistField = new TextField(song.getArtist());
 
         titleField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) titleField.setText(newVal.replace(" ", "-"));
+            if (newVal.contains(" ")) {
+                titleField.setText(newVal.replace(" ", "-"));
+            }
         });
         artistField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) artistField.setText(newVal.replace(" ", "-"));
+            if (newVal.contains(" ")) {
+                artistField.setText(newVal.replace(" ", "-"));
+            }
         });
 
         Button saveBtn = new Button("Save");

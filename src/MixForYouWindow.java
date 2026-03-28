@@ -1,3 +1,4 @@
+
 import javafx.collections.*;
 import javafx.geometry.*;
 import javafx.scene.*;
@@ -14,34 +15,38 @@ import java.util.*;
 public class MixForYouWindow {
 
     //theme
-    private static final String BG     = "#f5f5f5";
-    private static final String PANEL  = "#ffffff";
+    private static final String BG = "#f5f5f5";
+    private static final String PANEL = "#ffffff";
     private static final String BORDER = "#e0e0e0";
-    private static final String TEXT   = "#333333";
-    private static final String MUTED  = "#888888";
+    private static final String TEXT = "#333333";
+    private static final String MUTED = "#888888";
     private static final String ACCENT = "#4773a1";//botton
 
     //UI design
     private static final String[][] PALETTES = {
-        { "#1a1a2e", "#16213e", "#0f3460", "#e94560" },
-        { "#2d2016", "#4a3520", "#7a5c38", "#f0c060" },
-        { "#0d2b1a", "#1a4a2e", "#2d7a50", "#6ee0a0" },
-        { "#2b1a3a", "#4a2060", "#7a3490", "#d060f0" },
-        { "#1a2b2b", "#1e4040", "#2a6060", "#60d0d0" },
-    };
+        {"#1a1a2e", "#16213e", "#0f3460", "#e94560"},
+        {"#2d2016", "#4a3520", "#7a5c38", "#f0c060"},
+        {"#0d2b1a", "#1a4a2e", "#2d7a50", "#6ee0a0"},
+        {"#2b1a3a", "#4a2060", "#7a3490", "#d060f0"},
+        {"#1a2b2b", "#1e4040", "#2a6060", "#60d0d0"},};
 
     private final HomeWindow homeWindow;//reference to main window
     private final LibraryService libraryService;//handles data
+    private Stage stage;//stage
 
     //con
     public MixForYouWindow(HomeWindow homeWindow, LibraryService libraryService) {
-        this.homeWindow     = homeWindow;
+        this.homeWindow = homeWindow;
         this.libraryService = libraryService;
     }
 
     //show window
     public void show(Stage owner) {
-        Stage stage = new Stage();
+        if (stage != null && stage.isShowing()) {
+            stage.requestFocus();
+            return;
+        }
+        stage = new Stage();
         stage.initOwner(owner);//set parent window
         stage.initModality(Modality.NONE);//no block main window
         stage.setTitle("Mix For You");
@@ -73,7 +78,7 @@ public class MixForYouWindow {
 
     //center (card and botton
     private VBox buildCenter(Stage stage) {
-        
+
         //box for card
         HBox cardPane = new HBox(12);
         cardPane.setAlignment(Pos.CENTER_LEFT);
@@ -97,7 +102,7 @@ public class MixForYouWindow {
             generateMix();//creat new mix
             refreshCards(cardPane, stage);//refresh screen
         });
-        
+
         //clear botton
         Button btnClear = flatBtn("🗑  Clear All");
         btnClear.setOnAction(e -> {
@@ -154,7 +159,7 @@ public class MixForYouWindow {
 
         //crate card layout
         VBox card = new VBox(6, buildVinyl(104, 70, palette), nameLbl, countLbl);
-        
+
         card.setAlignment(Pos.TOP_CENTER);
         card.setPadding(new Insets(8, 6, 8, 6));
         card.setCursor(javafx.scene.Cursor.HAND);//mouse pointer
@@ -162,15 +167,15 @@ public class MixForYouWindow {
         //Style when not point
         String sOff = "-fx-background-color:transparent;-fx-border-color:transparent;-fx-border-radius:8;-fx-background-radius:8;";
         //Style when point
-        String sOn  = "-fx-background-color:rgba(0,0,0,0.04);-fx-border-color:#dddddd;-fx-border-radius:8;-fx-background-radius:8;";
+        String sOn = "-fx-background-color:rgba(0,0,0,0.04);-fx-border-color:#dddddd;-fx-border-radius:8;-fx-background-radius:8;";
         card.setStyle(sOff);
         //hover effect
         card.setOnMouseEntered(e -> card.setStyle(sOn));
-        card.setOnMouseExited(e  -> card.setStyle(sOff));
+        card.setOnMouseExited(e -> card.setStyle(sOff));
 
         //click = open detail window
-        card.setOnMouseClicked(e ->
-            openDetailWindow(stage, mix, palette, () -> refreshCards(cardPane, stage))
+        card.setOnMouseClicked(e
+                -> openDetailWindow(stage, mix, palette, () -> refreshCards(cardPane, stage))
         );
 
         return card;
@@ -231,24 +236,26 @@ public class MixForYouWindow {
         //random all the songs order
         List<Song> shuffled = new ArrayList<>(allSongs);
         Collections.shuffle(shuffled);
-        
-        int count  = Math.min(30, shuffled.size());
+
+        int count = Math.min(30, shuffled.size());
         int mixNum = libraryService.getLibrary().getMixForYou().size() + 1;
 
         Playlist mix = new Playlist(
                 "Random Mix " + mixNum,
                 "Auto-generated mix #" + mixNum
         );
-        
+
         //add the randomed song into the mixx
-        for (int i = 0; i < count; i++) mix.addSong(shuffled.get(i));
+        for (int i = 0; i < count; i++) {
+            mix.addSong(shuffled.get(i));
+        }
 
         libraryService.getLibrary().addMix(mix);
     }
 
     //mix detail window
     private void openDetailWindow(Stage owner, Playlist mix, String[] palette,
-                                   Runnable refreshCallback) {
+            Runnable refreshCallback) {
         Stage win = new Stage();
         win.initModality(Modality.WINDOW_MODAL);//block only parent window
         win.initOwner(owner);
@@ -354,30 +361,30 @@ public class MixForYouWindow {
         Button b = new Button(text);
         b.setFont(Font.font("Arial", FontWeight.BOLD, 11));
         String off = "-fx-background-color:transparent;-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#444444;-fx-cursor:hand;";
-        String on  = "-fx-background-color:rgba(0,0,0,0.08);-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#111111;";
+        String on = "-fx-background-color:rgba(0,0,0,0.08);-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#111111;";
         b.setStyle(off);
         b.setOnMouseEntered(e -> b.setStyle(on));
-        b.setOnMouseExited(e  -> b.setStyle(off));
+        b.setOnMouseExited(e -> b.setStyle(off));
         return b;
     }
 
     private Button accentBtn(String text) {
         Button b = new Button(text);
         String off = "-fx-background-color:" + ACCENT + ";-fx-text-fill:white;-fx-font-weight:bold;-fx-cursor:hand;-fx-border-radius:4;-fx-background-radius:4;-fx-padding:5 12 5 12;";
-        String on  = "-fx-background-color:#355f8a;-fx-text-fill:white;-fx-font-weight:bold;-fx-cursor:hand;-fx-border-radius:4;-fx-background-radius:4;-fx-padding:5 12 5 12;";
+        String on = "-fx-background-color:#355f8a;-fx-text-fill:white;-fx-font-weight:bold;-fx-cursor:hand;-fx-border-radius:4;-fx-background-radius:4;-fx-padding:5 12 5 12;";
         b.setStyle(off);
         b.setOnMouseEntered(e -> b.setStyle(on));
-        b.setOnMouseExited(e  -> b.setStyle(off));
+        b.setOnMouseExited(e -> b.setStyle(off));
         return b;
     }
 
     private Button dangerBtn(String text) {
         Button b = new Button(text);
         String off = "-fx-background-color:transparent;-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#cc3333;-fx-cursor:hand;";
-        String on  = "-fx-background-color:rgba(0,0,0,0.06);-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#cc3333;";
+        String on = "-fx-background-color:rgba(0,0,0,0.06);-fx-border-color:transparent;-fx-font-weight:bold;-fx-text-fill:#cc3333;";
         b.setStyle(off);
         b.setOnMouseEntered(e -> b.setStyle(on));
-        b.setOnMouseExited(e  -> b.setStyle(off));
+        b.setOnMouseExited(e -> b.setStyle(off));
         return b;
     }
 
