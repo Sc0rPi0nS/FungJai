@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.Serializable;
 
 public class Song extends MediaItem implements Playable, Serializable {
-
+    
+    //Attribute
     private String filePathMp3;
     private long durationSec;
 
@@ -12,8 +13,9 @@ public class Song extends MediaItem implements Playable, Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    //Constructor
     public Song(String title, String artist, String filePathMp3, int durationSec) {
-        super(title, artist); // dateAdded ถูก set ใน MediaItem แล้ว
+        super(title, artist);
         this.filePathMp3 = filePathMp3;
         this.durationSec = durationSec;
     }
@@ -47,7 +49,7 @@ public class Song extends MediaItem implements Playable, Serializable {
         return durationSec;
     }
 
-    // alias ให้ SongRow เรียกได้สะดวก
+    //getTime
     public long getDuration() {
         return durationSec;
     }
@@ -56,7 +58,7 @@ public class Song extends MediaItem implements Playable, Serializable {
         this.durationSec = durationSec;
     }
 
-    // คืนวันที่เป็น String "yyyy-MM-dd" จาก LocalDateTime ของ MediaItem
+    //getterDate
     public String getDateAddedString() {
         return getDateAdded() != null
                 ? getDateAdded().toLocalDate().toString()
