@@ -18,13 +18,11 @@ public class Library implements Serializable {
         this.allSongs  = new Playlist("All Songs", "Default playlist with all songs");
     }
 
-    //readFileObject
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        mixForYou = new ArrayList<>(); // เริ่มใหม่เสมอ ไม่โหลดจาก disk
+        mixForYou = new ArrayList<>();
     }
 
-    //getterAllSong
     public Playlist getAllSongs() { return allSongs; }
     
     
@@ -86,7 +84,6 @@ public class Library implements Serializable {
         return mixForYou.stream().filter(m -> m.getId().equals(mixId)).findFirst();
     }
 
-    //getterSong
     public Song getSong(UUID id) {
         for (Song song : mySongs) {
             if (song.getId().equals(id)) return song;
