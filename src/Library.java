@@ -2,13 +2,15 @@ import java.io.*;
 import java.util.*;
 
 public class Library implements Serializable {
+    //Attribue
     private static final long serialVersionUID = 1L;
     private Playlist allSongs;
 
     private final List<Song> mySongs;
     private final List<Playlist> playlists;
-    private transient List<Playlist> mixForYou; // ไม่ save — ล้างทุกครั้งที่เปิดโปรแกรม
+    private transient List<Playlist> mixForYou;
 
+    //Constructor
     public Library() {
         this.mySongs   = new ArrayList<>();
         this.playlists = new ArrayList<>();
@@ -16,14 +18,16 @@ public class Library implements Serializable {
         this.allSongs  = new Playlist("All Songs", "Default playlist with all songs");
     }
 
-    // เรียกหลัง deserialize เพื่อ init transient field
+    //readFileObject
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         mixForYou = new ArrayList<>(); // เริ่มใหม่เสมอ ไม่โหลดจาก disk
     }
 
+    //getterAllSong
     public Playlist getAllSongs() { return allSongs; }
-
+    
+    
     public List<Song> getMySongs() {
         return Collections.unmodifiableList(mySongs);
     }
@@ -82,6 +86,7 @@ public class Library implements Serializable {
         return mixForYou.stream().filter(m -> m.getId().equals(mixId)).findFirst();
     }
 
+    //getterSong
     public Song getSong(UUID id) {
         for (Song song : mySongs) {
             if (song.getId().equals(id)) return song;
