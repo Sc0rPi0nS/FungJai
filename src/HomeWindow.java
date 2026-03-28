@@ -32,6 +32,10 @@ public class HomeWindow {
 
     private About aboutWindow;
 
+    // เก็บ reference listener เพื่อ remove ก่อน bind ใหม่ ป้องกัน listener สะสม
+    private javafx.beans.value.ChangeListener<javafx.util.Duration> currentTimeListener;
+    private MediaPlayer boundPlayer; // player ที่ผูก listener อยู่ตอนนี้
+
     public void show(Stage stage) {
 
         libraryService = new LibraryService();
@@ -39,6 +43,9 @@ public class HomeWindow {
         playerService = new PlayerService(
                 libraryService.getLibrary().getAllSongs()
         );
+
+        // เมื่อเพลงเปลี่ยนอัตโนมัติ (จบ → ขึ้นถัดไป) ให้ HomeWindow อัปเดต UI
+        playerService.setOnSongChanged(newSong -> setSongInfo(newSong, currentPlaylist));
 
         BorderPane root = new BorderPane();
         root.setPrefSize(600, 450);
@@ -178,18 +185,18 @@ public class HomeWindow {
                 player.setVolume(newVal.doubleValue());
             }
         });
-Label volIcon = new Label("🔊");
+        Label volIcon = new Label("🔊");
 
-HBox volumeBox = new HBox(4, volIcon, volume);
-volumeBox.setAlignment(Pos.CENTER);
+        HBox volumeBox = new HBox(4, volIcon, volume);
+        volumeBox.setAlignment(Pos.CENTER);
 
 // ⭐ รวมทุกปุ่มไว้ด้วยกัน
-HBox controls = new HBox(6, lyrics, shuffle, prev, play, next, replay, volumeBox);
-controls.setAlignment(Pos.CENTER);
-controls.setPadding(new Insets(0, 0, 0, 20));
+        HBox controls = new HBox(6, lyrics, shuffle, prev, play, next, replay, volumeBox);
+        controls.setAlignment(Pos.CENTER);
+        controls.setPadding(new Insets(0, 0, 0, 20));
 
-    BorderPane controlBar = new BorderPane();
-    controlBar.setCenter(controls);
+        BorderPane controlBar = new BorderPane();
+        controlBar.setCenter(controls);
 
         progress = new Slider();
         progress.setMin(0);
@@ -394,23 +401,47 @@ controls.setPadding(new Insets(0, 0, 0, 20));
 
     private void bindPlayer(MediaPlayer player) {
 
-        player.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
+        // ── ลบ listener เก่าออกก่อนเสมอ ป้องกัน listener สะสมหลาย song ──
+        if (boundPlayer != null && currentTimeListener != null) {
+            boundPlayer.currentTimeProperty().removeListener(currentTimeListener);
+        }
 
-            double seconds = newTime.toSeconds();
+        boundPlayer = player;
 
-            progress.setValue(seconds);
+        currentTimeListener = (obs, oldTime, newTime) -> {
+            // อัปเดต progress เฉพาะตอนที่ user ไม่ได้ลาก slider
+            if (!progress.isValueChanging()) {
+                double seconds = newTime.toSeconds();
+                progress.setValue(seconds);
 
-            int min = (int) seconds / 60;
-            int sec = (int) seconds % 60;
+                int min = (int) seconds / 60;
+                int sec = (int) seconds % 60;
+                time.setText(String.format("%02d:%02d", min, sec));
 
-            time.setText(String.format("%02d:%02d", min, sec));
+                updateProgressColor();
+            }
+        };
 
-            updateProgressColor();
-        });
+        player.currentTimeProperty().addListener(currentTimeListener);
 
-        player.setOnReady(() -> {
-            progress.setMax(player.getTotalDuration().toSeconds());
-        });
+        // setMax — ถ้า player ready แล้วก็ set ทันที ถ้ายังไม่ ready รอ setOnReady
+        Runnable applyMax = () -> {
+            double total = player.getTotalDuration() != null
+                    ? player.getTotalDuration().toSeconds() : 0;
+            if (total > 0) {
+                progress.setMax(total);
+            }
+        };
+
+        MediaPlayer.Status status = player.getStatus();
+        if (status == MediaPlayer.Status.READY
+                || status == MediaPlayer.Status.PLAYING
+                || status == MediaPlayer.Status.PAUSED
+                || status == MediaPlayer.Status.STALLED) {
+            applyMax.run();
+        } else {
+            player.setOnReady(applyMax);
+        }
     }
 
     // ================= SET SONG =================
@@ -433,7 +464,11 @@ controls.setPadding(new Insets(0, 0, 0, 20));
 
         playerService.playSong(song);
 
-        MediaPlayer player = song.getMediaPlayer(); // ⭐ ใช้ตัวนี้
+        MediaPlayer player = song.getMediaPlayer();
+
+        // รีเซ็ต progress ก่อนเสมอ เพื่อป้องกัน bar ค้างจากเพลงก่อนหน้า
+        progress.setValue(0);
+        progress.setMax(100); // placeholder จนกว่า bindPlayer จะ setMax จริง
 
         setupSpectrum(player);
         bindPlayer(player);
