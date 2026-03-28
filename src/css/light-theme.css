@@ -1,0 +1,22 @@
+.root {
+    -fx-background-color: #f5f5f5;
+}
+.menu-btn {
+    -fx-text-fill: #444444;
+}
+.menu-bar {
+    -fx-background-color: #eeeeee;
+    -fx-border-color: #cccccc;
+}
+.label {
+    -fx-text-fill: #333333; /* Dark text for light mode */
+}
+
+.song-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.artist-name {
+    -fx-text-fill: gray; /* Keep the artist gray in light mode */
+}

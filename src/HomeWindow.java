@@ -1,3 +1,4 @@
+
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -40,14 +41,16 @@ public class HomeWindow {
         );
 
         BorderPane root = new BorderPane();
-        root.setPrefSize(500, 450);
-        root.setStyle("-fx-background-color: #f5f5f5;");
+        root.setPrefSize(600, 450);
+        root.getStyleClass().add("root");
 
         // ================= TOP =================
         Button home = menuBtn("HOME", true);
         Button mySong = menuBtn("MYSONG", false);
         Button playlist = menuBtn("MYPLAYLIST", false);
         Button mix = menuBtn("MIXFORYOU", false);
+        Button themeBtn = new Button("🌙 Dark");//Button for Dark mode
+        themeBtn.setStyle("-fx-background-color: #cccccc; -fx-font-weight: bold;");
 
         mySong.setOnAction(e
                 -> new MySongWindow(this, libraryService).show(stage)
@@ -66,13 +69,11 @@ public class HomeWindow {
             aboutWindow.show(stage.getX(), stage.getY(), stage.getWidth());
         });
 
-        HBox menuBar = new HBox(15, home, mySong, playlist, mix, info);
+        HBox menuBar = new HBox(15, home, mySong, playlist, mix, themeBtn, info);
         menuBar.setAlignment(Pos.CENTER);
         menuBar.setPadding(new Insets(4));
-        menuBar.setStyle(
-                "-fx-background-color: #eeeeee;"
-                + "-fx-border-color: #cccccc;"
-        );
+
+        menuBar.getStyleClass().add("menu-bar");
 
         root.setTop(menuBar);
 
@@ -102,8 +103,9 @@ public class HomeWindow {
         song = new Label("Song Title");
         artist = new Label("Artist");
 
-        song.setStyle("-fx-font-size:14px;-fx-font-weight:bold;");
-        artist.setStyle("-fx-text-fill:gray;");
+        //CSS
+        song.getStyleClass().add("song-title");
+        artist.getStyleClass().add("artist-name");
 
         HBox songLine = new HBox(6, song, new Label("–"), artist);
         songLine.setAlignment(Pos.CENTER);
@@ -265,6 +267,27 @@ public class HomeWindow {
         // ================= SCENE =================
         Scene scene = new Scene(root);
 
+        // 1. Load the light theme by default
+        try {
+            scene.getStylesheets().add(getClass().getResource("/css/light-theme.css").toExternalForm());
+        } catch (Exception ex) {
+            System.out.println("Could not find light-theme.css! Make sure it is in the right folder.");
+        }
+
+        // 2. Make the button swap the themes when clicked
+        themeBtn.setOnAction(e -> {
+            scene.getStylesheets().clear(); // Remove the current theme
+
+            if (themeBtn.getText().equals("🌙 Dark")) {
+                // Switch to Dark
+                scene.getStylesheets().add(getClass().getResource("/css/dark-theme.css").toExternalForm());
+                themeBtn.setText("☀️ Light");
+            } else {
+                // Switch to Light
+                scene.getStylesheets().add(getClass().getResource("/css/light-theme.css").toExternalForm());
+                themeBtn.setText("🌙 Dark");
+            }
+        });
         stage.setScene(scene);
         stage.setTitle("FungJai");
         stage.setResizable(false);
@@ -282,26 +305,14 @@ public class HomeWindow {
 
     // ================= MENU BUTTON =================
     private Button menuBtn(String text, boolean active) {
-
         Button b = new Button(text);
-        b.setPrefWidth(100);
-        b.setPrefHeight(32);
+        b.getStyleClass().add("menu-btn");
 
-        String activeStyle = "-fx-background-color:#4773a1;-fx-font-weight:bold;-fx-text-fill:black;-fx-cursor:hand;";
-        String normalStyle = "-fx-background-color:transparent;-fx-font-weight:bold;-fx-text-fill:#444;-fx-cursor:hand;";
+        b.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-font-size: 14px;");
 
-        b.setStyle(active ? activeStyle : normalStyle);
-        b.setOnMouseEntered(e -> {
-            if (!active) {
-                b.setStyle(activeStyle);
-            }
-        });
-        b.setOnMouseExited(e -> {
-            if (!active) {
-                b.setStyle(normalStyle);
-            }
-        });
-
+        if (active) {
+            b.setStyle(b.getStyle() + "-fx-text-fill: #4773a1;"); // Keep blue active color
+        }
         return b;
     }
 
