@@ -6,31 +6,24 @@ import java.io.Serializable;
 public class Song extends MediaItem implements Playable, Serializable {
 
     private String filePathMp3;
-    private int durationSec;
+    private long durationSec;
 
     private transient MediaPlayer mediaPlayer;
 
     private static final long serialVersionUID = 1L;
 
     public Song(String title, String artist, String filePathMp3, int durationSec) {
-        super(title, artist);
+        super(title, artist); // dateAdded ถูก set ใน MediaItem แล้ว
         this.filePathMp3 = filePathMp3;
         this.durationSec = durationSec;
     }
 
     public MediaPlayer getMediaPlayer() {
-
         if (mediaPlayer == null) {
-
             Media media = new Media(new File(filePathMp3).toURI().toString());
-
-            media.setOnError(() -> {
-                System.out.println(media.getError());
-            });
-
+            media.setOnError(() -> System.out.println(media.getError()));
             mediaPlayer = new MediaPlayer(media);
         }
-
         return mediaPlayer;
     }
 
@@ -50,11 +43,27 @@ public class Song extends MediaItem implements Playable, Serializable {
     }
 
     @Override
-    public int getDurationSrc() {
+    public long getDurationSrc() {
         return durationSec;
     }
 
-    public String getFilePathMp3(){
+    // alias ให้ SongRow เรียกได้สะดวก
+    public long getDuration() {
+        return durationSec;
+    }
+
+    public void setDuration(long durationSec) {
+        this.durationSec = durationSec;
+    }
+
+    // คืนวันที่เป็น String "yyyy-MM-dd" จาก LocalDateTime ของ MediaItem
+    public String getDateAddedString() {
+        return getDateAdded() != null
+                ? getDateAdded().toLocalDate().toString()
+                : java.time.LocalDate.now().toString();
+    }
+
+    public String getFilePathMp3() {
         return filePathMp3;
     }
 

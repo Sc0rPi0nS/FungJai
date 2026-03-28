@@ -206,7 +206,7 @@ public class MixForYouWindow {
 
         List<Song> shuffled = new ArrayList<>(allSongs);
         Collections.shuffle(shuffled);
-        int count  = Math.min(10, shuffled.size());
+        int count  = Math.min(30, shuffled.size());
         int mixNum = libraryService.getLibrary().getMixForYou().size() + 1;
 
         Playlist mix = new Playlist(
@@ -229,7 +229,14 @@ public class MixForYouWindow {
 
         ObservableList<SongRow> rows = FXCollections.observableArrayList();
         for (Song s : mix.getSongs()) {
-            rows.add(new SongRow(s.getId(), s.getTitle(), s.getArtist(), s.getFilePathMp3()));
+            rows.add(new SongRow(
+                    s.getId(),
+                    s.getTitle(),
+                    s.getArtist(),
+                    s.getFilePathMp3(),
+                    s.getDuration(),
+                    s.getDateAddedString()
+            ));
         }
 
         TableView<SongRow> table = new TableView<>(rows);

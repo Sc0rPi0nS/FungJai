@@ -1,4 +1,3 @@
-
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -37,10 +36,10 @@ public class MySongWindow {
         artistCol.setCellValueFactory(data -> data.getValue().artistProperty());
 
         TableColumn<SongRow, String> timeCol = new TableColumn<>("Time");
-        //timeCol.setCellValueFactory(data -> data.getValue().timeProperty());
+        timeCol.setCellValueFactory(data -> data.getValue().timeProperty());
 
         TableColumn<SongRow, String> dateCol = new TableColumn<>("Date Added");
-        //dateCol.setCellValueFactory(data -> data.getValue().dateProperty());
+        dateCol.setCellValueFactory(data -> data.getValue().dateProperty());
 
         // ===== Button Column =====
         TableColumn<SongRow, Void> actionCol = new TableColumn<>("...");
@@ -76,33 +75,20 @@ public class MySongWindow {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(btn);
-                }
+                setGraphic(empty ? null : btn);
             }
         });
+
         // add columns
-        table.getColumns().addAll(
-                titleCol,
-                artistCol,
-                timeCol,
-                dateCol,
-                actionCol
-        );
+        table.getColumns().addAll(titleCol, artistCol, timeCol, dateCol, actionCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         table.setRowFactory(tv -> {
             TableRow<SongRow> row = new TableRow<>();
 
             row.setOnMouseClicked(event -> {
-
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
-
                     SongRow r = row.getItem();
 
-                    // หา Song จริงจาก Library ด้วย id
                     Song song = libraryService.getLibrary()
                             .getMySongs()
                             .stream()
@@ -111,15 +97,11 @@ public class MySongWindow {
                             .orElse(null);
 
                     if (song != null) {
-                        if (song != null) {
-
-                            home.getPlayerService().playLibrary(
-                                    libraryService.getLibrary().getMySongs(),
-                                    song
-                            );
-
-                            home.setSongInfo(song, null);
-                        }
+                        home.getPlayerService().playLibrary(
+                                libraryService.getLibrary().getMySongs(),
+                                song
+                        );
+                        home.setSongInfo(song, null);
                     }
                 }
             });
@@ -127,22 +109,40 @@ public class MySongWindow {
             return row;
         });
 
+        // ===== Load songs — ใช้ duration จริงจาก Song ที่ save ไว้แล้ว =====
         for (Song s : libraryService.getLibrary().getMySongs()) {
-
-            tableData.add(new SongRow(
+            SongRow row = new SongRow(
                     s.getId(),
                     s.getTitle(),
                     s.getArtist(),
-                    s.getFilePathMp3()
-            ));
+                    s.getFilePathMp3(),
+                    s.getDuration(),           // ใช้ค่าที่ save ไว้ ถ้า > 0 แสดงทันที
+                    s.getDateAddedString()
+            );
+            tableData.add(row);
+
+            // ถ้า duration ยังเป็น 0 (เพลงเก่าที่ยังไม่มีข้อมูล) → โหลดจาก MediaPlayer แล้ว save
+            if (s.getDuration() <= 0) {
+                javafx.scene.media.MediaPlayer player = s.getMediaPlayer();
+                player.setOnReady(() -> {
+                    javafx.util.Duration d = player.getMedia().getDuration();
+                    if (d != null && !d.isUnknown() && !d.isIndefinite()) {
+                        long secs = (long) d.toSeconds();
+                        long min = secs / 60;
+                        long sec = secs % 60;
+                        s.setDuration(secs);
+                        libraryService.forceSave();
+                        javafx.application.Platform.runLater(() ->
+                            row.timeProperty().set(min + ":" + String.format("%02d", sec))
+                        );
+                    }
+                });
+            }
         }
 
         // ===== Buttons =====
         Button addBtn = new Button("Add");
-
         addBtn.setOnAction(e -> onAddSong());
-        //editBtn.setOnAction(e -> onEditSong());
-        //deleteBtn.setOnAction(e -> onDeleteSong());
 
         HBox buttons = new HBox(10, addBtn);
         VBox root = new VBox(10, table, buttons);
@@ -166,33 +166,24 @@ public class MySongWindow {
         artistField.setPromptText("Artist");
 
         titleField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) {
-                titleField.setText(newVal.replace(" ", "-"));
-            }
+            if (newVal.contains(" ")) titleField.setText(newVal.replace(" ", "-"));
         });
 
         artistField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) {
-                artistField.setText(newVal.replace(" ", "-"));
-            }
+            if (newVal.contains(" ")) artistField.setText(newVal.replace(" ", "-"));
         });
 
         Label fileLabel = new Label("No file selected");
-
         Button chooseBtn = new Button("Choose File");
-
         final String[] filePath = new String[1];
 
         chooseBtn.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
             chooser.setTitle("Select MP3 File");
-
             chooser.getExtensionFilters().add(
                     new FileChooser.ExtensionFilter("MP3 Files", "*.mp3")
             );
-
             java.io.File file = chooser.showOpenDialog(popup);
-
             if (file != null) {
                 filePath[0] = file.getAbsolutePath();
                 fileLabel.setText(file.getName());
@@ -202,51 +193,60 @@ public class MySongWindow {
         Button saveBtn = new Button("Save");
 
         saveBtn.setOnAction(e -> {
-
             String title = titleField.getText();
             String artist = artistField.getText();
 
             if (!title.isEmpty() && !artist.isEmpty() && filePath[0] != null) {
 
-                Song song = new Song(
-                        title,
-                        artist,
-                        filePath[0],
-                        0
-                );
-
+                Song song = new Song(title, artist, filePath[0], 0);
                 libraryService.addSong(song);
 
-                tableData.add(new SongRow(
+                // สร้าง SongRow แสดง "..." ก่อน
+                SongRow row = new SongRow(
                         song.getId(),
                         title,
                         artist,
-                        filePath[0]
-                ));
+                        filePath[0],
+                        0,
+                        song.getDateAddedString()
+                );
+                tableData.add(row);
+
+                // ดึง duration จาก MediaPlayer ของ Song ตัวจริง ไม่สร้าง player ซ้ำ
+                javafx.scene.media.MediaPlayer player = song.getMediaPlayer();
+                player.setOnReady(() -> {
+                    javafx.util.Duration d = player.getMedia().getDuration();
+                    if (d != null && !d.isUnknown() && !d.isIndefinite()) {
+                        long secs = (long) d.toSeconds();
+                        long min = secs / 60;
+                        long sec = secs % 60;
+                        // บันทึก duration กลับเข้า Song แล้ว save ลง library ทันที
+                        song.setDuration(secs);
+                        libraryService.forceSave();
+                        javafx.application.Platform.runLater(() ->
+                            row.timeProperty().set(min + ":" + String.format("%02d", sec))
+                        );
+                    }
+                });
+
                 popup.close();
             }
         });
 
         VBox layout = new VBox(
                 10,
-                new Label("Title"),
-                titleField,
-                new Label("Artist"),
-                artistField,
-                chooseBtn,
-                fileLabel,
+                new Label("Title"), titleField,
+                new Label("Artist"), artistField,
+                chooseBtn, fileLabel,
                 saveBtn
         );
-
         layout.setStyle("-fx-padding: 20");
-
         popup.setScene(new Scene(layout, 300, 250));
         popup.show();
     }
 
     private void onEditSong(SongRow row) {
 
-        // หา Song จริง
         Song song = libraryService.getLibrary()
                 .getMySongs()
                 .stream()
@@ -254,44 +254,30 @@ public class MySongWindow {
                 .findFirst()
                 .orElse(null);
 
-        if (song == null) {
-            return;
-        }
+        if (song == null) return;
 
         Stage popup = new Stage();
         popup.setTitle("Edit Song");
 
         TextField titleField = new TextField(song.getTitle());
         TextField artistField = new TextField(song.getArtist());
-        titleField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) {
-                titleField.setText(newVal.replace(" ", "-"));
-            }
-        });
 
+        titleField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.contains(" ")) titleField.setText(newVal.replace(" ", "-"));
+        });
         artistField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) {
-                artistField.setText(newVal.replace(" ", "-"));
-            }
+            if (newVal.contains(" ")) artistField.setText(newVal.replace(" ", "-"));
         });
 
         Button saveBtn = new Button("Save");
-
         saveBtn.setOnAction(e -> {
-
             String newTitle = titleField.getText();
             String newArtist = artistField.getText();
-
             if (!newTitle.isEmpty() && !newArtist.isEmpty()) {
-
-                // ✅ ใช้ updateSong() ที่ครอบคลุม update + save ในตัวเดียว
                 libraryService.updateSong(song.getId(), newTitle, newArtist);
-
-                // อัปเดต UI
                 row.setTitle(newTitle);
                 row.setArtist(newArtist);
                 table.refresh();
-
                 popup.close();
             }
         });
@@ -301,9 +287,7 @@ public class MySongWindow {
                 new Label("Artist"), artistField,
                 saveBtn
         );
-
         layout.setStyle("-fx-padding:20;");
-
         popup.setScene(new Scene(layout, 300, 200));
         popup.show();
     }
