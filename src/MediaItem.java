@@ -2,14 +2,14 @@
 import java.util.UUID;
 import java.time.LocalDateTime;
 import java.io.Serializable;
-
+//used as a base class
 public abstract class MediaItem implements Serializable{
     private UUID id;
     private String title;
     private String artist;
     private LocalDateTime dateAdded;
-    private static final long serialVersionUID = 1L;
-    
+    private static final long serialVersionUID = 1L;//version for Serializable
+    //Con
     public MediaItem(String title, String artist) {
         this.id = UUID.randomUUID();
         this.title = title;
@@ -17,6 +17,7 @@ public abstract class MediaItem implements Serializable{
         this.dateAdded = LocalDateTime.now();
     }
     
+    //normal set and get
     public UUID getId(){
         return id;
     }
