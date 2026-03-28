@@ -49,11 +49,6 @@ public class Song extends MediaItem implements Playable, Serializable {
         return durationSec;
     }
 
-    //getTime
-    public long getDuration() {
-        return durationSec;
-    }
-
     public void setDuration(long durationSec) {
         this.durationSec = durationSec;
     }

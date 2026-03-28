@@ -122,13 +122,13 @@ public class MySongWindow {
                     s.getTitle(),
                     s.getArtist(),
                     s.getFilePathMp3(),
-                    s.getDuration(), // ใช้ค่าที่ save ไว้ ถ้า > 0 แสดงทันที
+                    s.getDurationSrc(), // ใช้ค่าที่ save ไว้ ถ้า > 0 แสดงทันที
                     s.getDateAddedString()
             );
             tableData.add(row);
 
             // ถ้า duration ยังเป็น 0 (เพลงเก่าที่ยังไม่มีข้อมูล) → โหลดจาก MediaPlayer แล้ว save
-            if (s.getDuration() <= 0) {
+            if (s.getDurationSrc() <= 0) {
                 javafx.scene.media.MediaPlayer player = s.getMediaPlayer();
                 player.setOnReady(() -> {
                     javafx.util.Duration d = player.getMedia().getDuration();

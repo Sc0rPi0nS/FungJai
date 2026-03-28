@@ -270,7 +270,7 @@ public class MixForYouWindow {
                     s.getTitle(),
                     s.getArtist(),
                     s.getFilePathMp3(),
-                    s.getDuration(),
+                    s.getDurationSrc(),
                     s.getDateAddedString()
             ));
         }
