@@ -451,7 +451,9 @@ public class HomeWindow {
             videoPlayer.stop();
             return;
         }
-
+    // ✅ เพิ่มตรงนี้ — หลัง null check ก่อนบรรทัดอื่น
+    libraryService.printMediaInfo((MediaItem) song);  // รับ Abstract Class
+    libraryService.printMediaInfo((Playable) song);   // รับ Interface
         this.currentSong = song;
         this.currentPlaylist = playlist;
 
@@ -478,6 +480,7 @@ public class HomeWindow {
             videoPlayer.stop();
             videoPlayer.play();
         }
+
     }
 
     public PlayerService getPlayerService() {

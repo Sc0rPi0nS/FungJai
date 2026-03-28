@@ -102,6 +102,17 @@ public class LibraryService {
         saveLibrary();
         return true;
     }
+    // ① Method รับ Abstract Class (MediaItem)
+
+    public void printMediaInfo(MediaItem item) {
+        System.out.println("[MediaItem] " + item.getTitle() + " - " + item.getArtist()
+                + " | Added: " + item.getDateAdded());
+    }
+
+// ② Method รับ Interface (Playable) + แสดง Overload ด้วย
+    public void printMediaInfo(Playable item) {
+        System.out.println("[Playable] Duration: " + item.getDurationSrc() + "s");
+    }
 
     /**
      * Remove a song from a playlist, then persist.
