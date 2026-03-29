@@ -70,6 +70,8 @@ public class About {
     private JLabel LabelFeaturePlaylist;
     private JLabel LabelFeatureMix;
     private JLabel LabelFeatureOOP;
+    private JLabel LabelFeatureLyrics; 
+    private JLabel LabelFeatureSaveData;
     
     //Thank You
     private JLabel thankYou;
@@ -136,10 +138,13 @@ public class About {
         //Feature
         LabelFeatureDesc = createLabel("แอปจัดการและฟังเพลงที่ออกแบบด้วยแนวคิด OOP", mainFont.deriveFont(Font.BOLD, 15f), Color.BLACK);
         LabelFeatureHome = createLabel("- Home: ควบคุมการเล่นเพลง Loop, Shuffle, Volume", mainFont.deriveFont(14f), Color.BLACK);
-        LabelFeatureMySong = createLabel("- My Song: คลังเพลงส่วนตัว เพิ่มไฟล์เพลง (.mp4) ได้", mainFont.deriveFont(14f), Color.BLACK);
+        LabelFeatureMySong = createLabel("- My Song: คลังเพลงส่วนตัว เพิ่มไฟล์เพลง (.mp3) ได้", mainFont.deriveFont(14f), Color.BLACK);
         LabelFeaturePlaylist = createLabel("- Playlist: สร้าง แก้ไขชื่อ และจัดการรายการเพลง", mainFont.deriveFont(14f), Color.BLACK);
         LabelFeatureMix = createLabel("- Mix For You: ระบบสุ่มเพลงเพื่อสร้าง Playlist", mainFont.deriveFont(14f), Color.BLACK);
         LabelFeatureOOP = createLabel("- OOP: Encapsulation, Inheritance, Polymorphism", mainFont.deriveFont(14f), Color.BLACK);
+        LabelFeatureLyrics = createLabel("- Lyrics: ระบบแสดงเนื้อเพลง", mainFont.deriveFont(14f), Color.BLACK); 
+        LabelFeatureSaveData = createLabel("- Data: บันทึกคลังเพลงด้วย Object Stream", mainFont.deriveFont(14f), Color.BLACK); 
+        LabelFeatureOOP = createLabel("- OOP: Encapsulation, Inheritance, Polymorphism, Abstract, Interface", mainFont.deriveFont(14f), Color.BLACK);
 
         //Thank you
         thankYou = new JLabel("Thank you");
@@ -279,6 +284,8 @@ public class About {
         PanelForFeature.add(LabelFeatureMySong);
         PanelForFeature.add(LabelFeaturePlaylist);
         PanelForFeature.add(LabelFeatureMix);
+        PanelForFeature.add(LabelFeatureLyrics); 
+        PanelForFeature.add(LabelFeatureSaveData);
         PanelForFeature.add(LabelFeatureOOP);
 
         InternalFrameFeature.add(PanelForFeature);
