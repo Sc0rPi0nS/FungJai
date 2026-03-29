@@ -1,15 +1,13 @@
-
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.*;
 
 public class About {
-
     private JFrame winFrame;
     private JDesktopPane desktopPane;
-
-    //Attribute JTable
+    
+    //Name List For JTable
     private final String[] columnNames = {"Student ID", "Name"};
     private final Object[][] memberData = {
         {"68070023", "Chanawat Paenkhong"},
@@ -22,49 +20,60 @@ public class About {
         {"68070175", "Weerachai Lorpa"},
         {"68070208", "Inthuch Thipwet"}
     };
-
+    private JInternalFrame InternalFrameMember;
+    private JPanel PanelForTable;
+    private JPanel PanelForFacandUniver;
+    private JPanel PanelPrepare;
+    private JPanel PanelMember;
+    private JTable TableMember;
+    private JTableHeader TableHaeder;
+    private DefaultTableCellRenderer RenderTableHeader;
+    private DefaultTableCellRenderer RenderTableCell;
+    private DefaultTableModel TableModel;
+    
     //Font color
     private Font mainFont;
     private Font titleFont;
-    private final Color BG_COLOR = new Color(248, 249, 250);
-    private final Color PANEL_BG = Color.WHITE;
-    private final Color TEXT_DARK = new Color(44, 62, 80);
-    private final Color ACCENT_COLOR = new Color(41, 128, 185);
-
-    //Header
-    private JLabel projTitle;
-    private JLabel courseName;
-    private JLabel teacherName;
-    private JLabel lblPrepared;
-    private JLabel lblLibraries;
-    private JLabel lblFeatures;
-
+    
+    //Header    
+    private JPanel PanelheaderText;
+    private JLabel LabelProjectTitle;
+    private JLabel LabelSubjectName;
+    private JLabel LabelTeacherName;
+    private JLabel LabelPrepared;
+    private JLabel LabelLibrary;
+    private JLabel LabelFeature;
+    
     //number label
-    private JLabel facultyName;
-    private JLabel uniName;
-
+    private JLabel LabelFacultyName;
+    private JLabel LabelUniversityName;
+    
     //Library
-    private JLabel libFxHeader;
-    private JLabel libFxUI;
-    private JLabel libFxData;
-    private JLabel libFxGraphic;
-    private JLabel libFxMedia;
-    private JLabel libSwingHeader;
-    private JLabel libSwingDesc;
-    private JLabel libStdHeader;
-    private JLabel libStdDesc;
-
+    private JInternalFrame InternalFrameLibrary;
+    private JPanel PanelForLibrary;
+    private JLabel LabelLibrary_Header_FxHeader;
+    private JLabel LabelLibraryFxUI;
+    private JLabel LabelLibraryFxData;
+    private JLabel LabelLibraryFxGraphic;
+    private JLabel LabelLibraryFxMedia;
+    private JLabel LabelLibrary_Header_SwingHeader;
+    private JLabel LabelLibrarySwingDesc;
+    private JLabel LabelLibrary_Header_StdHeader;
+    private JLabel LabelLibraryStdDesc;
+    
     //Feature
-    private JLabel featDesc;
-    private JLabel featHome;
-    private JLabel featMySong;
-    private JLabel featPlaylist;
-    private JLabel featMix;
-    private JLabel featOOP;
-
+    private JInternalFrame InternalFrameFeature;
+    private JPanel PanelForFeature;
+    private JLabel LabelFeatureDesc;
+    private JLabel LabelFeatureHome;
+    private JLabel LabelFeatureMySong;
+    private JLabel LabelFeaturePlaylist;
+    private JLabel LabelFeatureMix;
+    private JLabel LabelFeatureOOP;
+    
     //Thank You
     private JLabel thankYou;
-
+    
     //Constructor
     public About() {
         try {
@@ -76,210 +85,215 @@ public class About {
         initComponents();
         setupWindow();
     }
-
+    
     private void initFonts() {
         try {
             mainFont = Font.createFont(Font.TRUETYPE_FONT, new java.io.File("Kanit-Regular.ttf"));
-            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(mainFont);
             titleFont = mainFont.deriveFont(Font.BOLD, 22f);
         } catch (Exception e) {
             mainFont = new Font("Tahoma", Font.PLAIN, 14);
             titleFont = new Font("Tahoma", Font.BOLD, 22);
         }
     }
-
+    
+    private JLabel createLabel(String text, Font font, Color color) {
+        JLabel label = new JLabel(text);
+        label.setFont(font);
+        label.setForeground(color);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return label;
+    }
+    
     private void initComponents() {
         //Header Texts
-        projTitle = createLabel("About Project \"FungJai\" Music media platform", titleFont, TEXT_DARK);
-        courseName = createLabel("รายวิชา Object Oriented Programming", mainFont.deriveFont(16f), TEXT_DARK);
-        teacherName = createLabel("เสนอ ผู้ช่วยศาสตราจารย์ ดร. ธราวิเชษฐ์ ธิติอรุณโรจน์", mainFont.deriveFont(16f), TEXT_DARK);
+        LabelProjectTitle = createLabel("About Project \"FungJai\" Music media platform", titleFont, Color.BLACK);
+        LabelSubjectName = createLabel("รายวิชา Object Oriented Programming", mainFont.deriveFont(16f), Color.BLACK);
+        LabelTeacherName = createLabel("เสนอ ผู้ช่วยศาสตราจารย์ ดร. ธราวิเชษฐ์ ธิติอรุณโรจน์", mainFont.deriveFont(16f), Color.BLACK);
 
         //Header for Internal Frame
         Font sectionFont = mainFont.deriveFont(Font.BOLD, 18f);
-        lblPrepared = createLabel("Prepared by", sectionFont, ACCENT_COLOR);
-        lblLibraries = createLabel("Libraries", sectionFont, ACCENT_COLOR);
-        lblFeatures = createLabel("Features", sectionFont, ACCENT_COLOR);
+        LabelPrepared = createLabel("Prepared by", sectionFont, new Color(41, 128, 185));
+        LabelLibrary = createLabel("Libraries", sectionFont, new Color(41, 128, 185));
+        LabelFeature = createLabel("Features", sectionFont, new Color(41, 128, 185));
 
         //Member Bottom
-        facultyName = createLabel("นักศึกษาคณะเทคโนโลยีสารสนเทศ", mainFont.deriveFont(Font.BOLD, 15f), ACCENT_COLOR);
-        uniName = createLabel("สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง", mainFont.deriveFont(Font.BOLD, 15f), ACCENT_COLOR);
+        LabelFacultyName = createLabel("นักศึกษาคณะเทคโนโลยีสารสนเทศ", mainFont.deriveFont(Font.BOLD, 15f), new Color(41, 128, 185));
+        LabelUniversityName = createLabel("สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง", mainFont.deriveFont(Font.BOLD, 15f), new Color(41, 128, 185));
 
         //Library
-        libFxHeader = createLabel("1. JavaFX (GUI สมัยใหม่ และมัลติมีเดีย)", mainFont.deriveFont(Font.BOLD, 14f), TEXT_DARK);
-        libFxUI = createLabel("  - โครงสร้าง UI: javafx.application, stage, scene, layout", mainFont.deriveFont(13f), TEXT_DARK);
-        libFxData = createLabel("  - จัดการข้อมูล: javafx.collections, beans.property", mainFont.deriveFont(13f), TEXT_DARK);
-        libFxGraphic = createLabel("  - รูปร่าง/สี/กราฟิก: javafx.scene.paint, shape, canvas", mainFont.deriveFont(13f), TEXT_DARK);
-        libFxMedia = createLabel("  - มัลติมีเดีย/แอนิเมชัน: javafx.scene.media, animation", mainFont.deriveFont(13f), TEXT_DARK);
-
-        libSwingHeader = createLabel("2. Java Swing และ AWT (GUI สำหรับหน้า About)", mainFont.deriveFont(Font.BOLD, 14f), TEXT_DARK);
-        libSwingDesc = createLabel("  - แพ็กเกจ: javax.swing.*, java.awt.*", mainFont.deriveFont(13f), TEXT_DARK);
-
-        libStdHeader = createLabel("3. Java Standard Libraries (Backend & Logic)", mainFont.deriveFont(Font.BOLD, 14f), TEXT_DARK);
-        libStdDesc = createLabel("  - Collections, UUID, LocalDateTime, I/O Stream", mainFont.deriveFont(13f), TEXT_DARK);
+        LabelLibrary_Header_FxHeader = createLabel("1. JavaFX (GUI สมัยใหม่ และมัลติมีเดีย)", mainFont.deriveFont(Font.BOLD, 14f), Color.BLACK);
+        LabelLibraryFxUI = createLabel("  - โครงสร้าง UI: javafx.application, stage, scene, layout", mainFont.deriveFont(13f), Color.BLACK);
+        LabelLibraryFxData = createLabel("  - จัดการข้อมูล: javafx.collections, beans.property", mainFont.deriveFont(13f), Color.BLACK);
+        LabelLibraryFxGraphic = createLabel("  - รูปร่าง/สี/กราฟิก: javafx.scene.paint, shape, canvas", mainFont.deriveFont(13f), Color.BLACK);
+        LabelLibraryFxMedia = createLabel("  - มัลติมีเดีย/แอนิเมชัน: javafx.scene.media, animation", mainFont.deriveFont(13f), Color.BLACK);
+        
+        LabelLibrary_Header_SwingHeader = createLabel("2. Java Swing และ AWT (GUI สำหรับหน้า About)", mainFont.deriveFont(Font.BOLD, 14f), Color.BLACK);
+        LabelLibrarySwingDesc = createLabel("  - แพ็กเกจ: javax.swing.*, java.awt.*", mainFont.deriveFont(13f), Color.BLACK);
+        
+        LabelLibrary_Header_StdHeader = createLabel("3. Java Standard Libraries (Backend & Logic)", mainFont.deriveFont(Font.BOLD, 14f), Color.BLACK);
+        LabelLibraryStdDesc = createLabel("  - Collections, UUID, LocalDateTime, I/O Stream", mainFont.deriveFont(13f), Color.BLACK);
 
         //Feature
-        featDesc = createLabel("แอปจัดการและฟังเพลงที่ออกแบบด้วยแนวคิด OOP", mainFont.deriveFont(Font.BOLD, 15f), TEXT_DARK);
-        featHome = createLabel("- Home: ควบคุมการเล่นเพลง Loop, Shuffle, Volume", mainFont.deriveFont(14f), TEXT_DARK);
-        featMySong = createLabel("- My Song: คลังเพลงส่วนตัว เพิ่มไฟล์เพลง (.mp4) ได้", mainFont.deriveFont(14f), TEXT_DARK);
-        featPlaylist = createLabel("- Playlist: สร้าง แก้ไขชื่อ และจัดการรายการเพลง", mainFont.deriveFont(14f), TEXT_DARK);
-        featMix = createLabel("- Mix For You: ระบบสุ่มเพลงเพื่อสร้าง Playlist", mainFont.deriveFont(14f), TEXT_DARK);
-        featOOP = createLabel("- OOP: Encapsulation, Inheritance, Polymorphism", mainFont.deriveFont(14f), TEXT_DARK);
+        LabelFeatureDesc = createLabel("แอปจัดการและฟังเพลงที่ออกแบบด้วยแนวคิด OOP", mainFont.deriveFont(Font.BOLD, 15f), Color.BLACK);
+        LabelFeatureHome = createLabel("- Home: ควบคุมการเล่นเพลง Loop, Shuffle, Volume", mainFont.deriveFont(14f), Color.BLACK);
+        LabelFeatureMySong = createLabel("- My Song: คลังเพลงส่วนตัว เพิ่มไฟล์เพลง (.mp4) ได้", mainFont.deriveFont(14f), Color.BLACK);
+        LabelFeaturePlaylist = createLabel("- Playlist: สร้าง แก้ไขชื่อ และจัดการรายการเพลง", mainFont.deriveFont(14f), Color.BLACK);
+        LabelFeatureMix = createLabel("- Mix For You: ระบบสุ่มเพลงเพื่อสร้าง Playlist", mainFont.deriveFont(14f), Color.BLACK);
+        LabelFeatureOOP = createLabel("- OOP: Encapsulation, Inheritance, Polymorphism", mainFont.deriveFont(14f), Color.BLACK);
 
         //Thank you
         thankYou = new JLabel("Thank you");
         thankYou.setFont(mainFont.deriveFont(Font.ITALIC | Font.BOLD, 32f));
-        thankYou.setForeground(ACCENT_COLOR);
+        thankYou.setForeground(new Color(41, 128, 185));
     }
 
     private void setupWindow() {
         //Windows Frame
         winFrame = new JFrame("About us - FungJai");
         winFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        winFrame.setSize(1000, 820);
+        winFrame.setSize(1000, 820); 
         winFrame.setLayout(new BorderLayout());
 
         desktopPane = new JDesktopPane();
-        desktopPane.setBackground(BG_COLOR);
-
-        //Header for InternalFrame
-        JPanel headerTextPanel = new JPanel(new GridLayout(3, 1, 0, 8));
-        headerTextPanel.setOpaque(false);
-
-        projTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        courseName.setHorizontalAlignment(SwingConstants.CENTER);
-        teacherName.setHorizontalAlignment(SwingConstants.CENTER);
-
-        headerTextPanel.add(projTitle);
-        headerTextPanel.add(courseName);
-        headerTextPanel.add(teacherName);
-
-        headerTextPanel.setBounds(0, 30, 1000, 100);
-        desktopPane.add(headerTextPanel, JLayeredPane.DEFAULT_LAYER);
+        desktopPane.setBackground(Color.WHITE);
+        
+        //Header Big Text
+        PanelheaderText = new JPanel(new GridLayout(3, 1));
+        PanelheaderText.setOpaque(false);
+        
+        LabelProjectTitle.setHorizontalAlignment(SwingConstants.CENTER);
+        LabelSubjectName.setHorizontalAlignment(SwingConstants.CENTER);
+        LabelTeacherName.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        PanelheaderText.add(LabelProjectTitle);
+        PanelheaderText.add(LabelSubjectName);
+        PanelheaderText.add(LabelTeacherName);
+        
+        PanelheaderText.setBounds(0, 30, 1000, 100);
+        desktopPane.add(PanelheaderText, JLayeredPane.DEFAULT_LAYER);
 
         //JInternalFrame Prepared by
-        JInternalFrame memberFrame = new JInternalFrame("Prepared by", false, false, false, false);
-        JPanel memberPanel = new JPanel(new BorderLayout(0, 10));
-        memberPanel.setBackground(PANEL_BG);
-        memberPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
+        InternalFrameMember = new JInternalFrame("Prepared by", false, false, false, false);
+        PanelMember = new JPanel(new BorderLayout(0, 10));
+        PanelMember.setBackground(Color.WHITE);
+        PanelMember.setBorder(new EmptyBorder(10, 20, 10, 20));
+        
+        PanelPrepare = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        PanelPrepare.setBackground(Color.WHITE);
+        PanelPrepare.add(LabelPrepared);
+        PanelMember.add(PanelPrepare, BorderLayout.NORTH);
 
-        JPanel topPrepPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        topPrepPanel.setBackground(PANEL_BG);
-        topPrepPanel.add(lblPrepared);
-        memberPanel.add(topPrepPanel, BorderLayout.NORTH);
-
-        //JTable Attribute
-        DefaultTableModel tableModel = new DefaultTableModel(memberData, columnNames) {
+                //JTable Attribute
+        TableModel = new DefaultTableModel(memberData, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return false; 
             }
         };
 
-        JTable memberTable = new JTable(tableModel);
-        memberTable.setFont(mainFont.deriveFont(14f));
-        memberTable.setForeground(TEXT_DARK);
-        memberTable.setBackground(PANEL_BG);
-        memberTable.setRowHeight(25);
-        memberTable.setShowGrid(true);
-        memberTable.setGridColor(new Color(230, 230, 230));
-        memberTable.setSelectionBackground(ACCENT_COLOR);
-        memberTable.setSelectionForeground(Color.WHITE);
+        TableMember = new JTable(TableModel);
+        TableMember.setFont(mainFont.deriveFont(14f));
+        TableMember.setForeground(Color.BLACK);
+        TableMember.setBackground(Color.WHITE);
+        TableMember.setRowHeight(30);
+        TableMember.setGridColor(new Color(230, 230, 230));
+        TableMember.setSelectionBackground(new Color(41, 128, 185));
+        TableMember.setSelectionForeground(Color.WHITE);
 
-        JTableHeader header = memberTable.getTableHeader();
-        header.setFont(mainFont.deriveFont(Font.BOLD, 15f));
-        header.setBackground(new Color(240, 240, 240));
-        header.setForeground(ACCENT_COLOR);
-        DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) header.getDefaultRenderer();
-        headerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        TableHaeder = TableMember.getTableHeader();
+        TableHaeder.setFont(mainFont.deriveFont(Font.BOLD, 15f));
+        TableHaeder.setBackground(new Color(240, 240, 240));
+        TableHaeder.setForeground(new Color(41, 128, 185));
+        
+        RenderTableHeader = (DefaultTableCellRenderer) TableHaeder.getDefaultRenderer();
+        RenderTableHeader.setHorizontalAlignment(JLabel.CENTER);
 
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        memberTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-        memberTable.getColumnModel().getColumn(0).setPreferredWidth(150);
-        memberTable.getColumnModel().getColumn(0).setMaxWidth(200);
+        RenderTableCell = new DefaultTableCellRenderer();
+        RenderTableCell.setHorizontalAlignment(JLabel.CENTER);
+        
+        TableMember.getColumnModel().getColumn(0).setCellRenderer(RenderTableCell);
+        TableMember.getColumnModel().getColumn(0).setPreferredWidth(150);
+        TableMember.getColumnModel().getColumn(0).setMaxWidth(200);
 
-        JPanel tableContainer = new JPanel(new BorderLayout());
-        tableContainer.setBackground(PANEL_BG);
-        tableContainer.add(memberTable.getTableHeader(), BorderLayout.NORTH);
-        tableContainer.add(memberTable, BorderLayout.CENTER);
-        tableContainer.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        PanelForTable = new JPanel(new BorderLayout());
+        PanelForTable.setBackground(Color.WHITE);
+        PanelForTable.add(TableMember.getTableHeader(), BorderLayout.NORTH);
+        PanelForTable.add(TableMember, BorderLayout.CENTER);
+        PanelForTable.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
 
-        JPanel instPanel = new JPanel();
-        instPanel.setLayout(new BoxLayout(instPanel, BoxLayout.Y_AXIS));
-        instPanel.setBackground(PANEL_BG);
-        instPanel.setBorder(new EmptyBorder(10, 10, 0, 10));
-        facultyName.setAlignmentX(Component.CENTER_ALIGNMENT);
-        uniName.setAlignmentX(Component.CENTER_ALIGNMENT);
-        instPanel.add(facultyName);
-        instPanel.add(uniName);
+        PanelForFacandUniver = new JPanel();
+        PanelForFacandUniver.setLayout(new BoxLayout(PanelForFacandUniver, BoxLayout.Y_AXIS));
+        PanelForFacandUniver.setBackground(Color.WHITE);
+        PanelForFacandUniver.setBorder(new EmptyBorder(10, 10, 0, 10));
+        LabelFacultyName.setAlignmentX(Component.CENTER_ALIGNMENT);
+        LabelUniversityName.setAlignmentX(Component.CENTER_ALIGNMENT);
+        PanelForFacandUniver.add(LabelFacultyName);
+        PanelForFacandUniver.add(LabelUniversityName);
 
-        memberPanel.add(tableContainer, BorderLayout.CENTER);
-        memberPanel.add(instPanel, BorderLayout.SOUTH);
-
-        memberFrame.add(memberPanel);
-        memberFrame.setBounds(30, 140, 450, 575);
-        memberFrame.setVisible(true);
-        desktopPane.add(memberFrame);
+        PanelMember.add(PanelForTable, BorderLayout.CENTER);
+        PanelMember.add(PanelForFacandUniver, BorderLayout.SOUTH);
+        
+        InternalFrameMember.add(PanelMember);
+        InternalFrameMember.setBounds(30, 140, 450, 575);
+        InternalFrameMember.setVisible(true);
+        desktopPane.add(InternalFrameMember);
 
         //JInternalFrame Library
-        JInternalFrame libFrame = new JInternalFrame("Libraries", false, false, false, false);
-        JPanel libInner = new JPanel();
-        libInner.setLayout(new BoxLayout(libInner, BoxLayout.Y_AXIS));
-        libInner.setBackground(PANEL_BG);
-        libInner.setBorder(new EmptyBorder(15, 20, 15, 20));
-        lblLibraries.setAlignmentX(Component.LEFT_ALIGNMENT);
-        libInner.add(lblLibraries);
-        libInner.add(Box.createRigidArea(new Dimension(0, 15)));
-
-        libInner.add(libFxHeader);
-        libInner.add(libFxUI);
-        libInner.add(libFxData);
-        libInner.add(libFxGraphic);
-        libInner.add(libFxMedia);
-        libInner.add(Box.createRigidArea(new Dimension(0, 10)));
-        libInner.add(libSwingHeader);
-        libInner.add(libSwingDesc);
-        libInner.add(Box.createRigidArea(new Dimension(0, 10)));
-        libInner.add(libStdHeader);
-        libInner.add(libStdDesc);
-
-        libFrame.add(libInner);
-        libFrame.setBounds(500, 140, 450, 280);
-        libFrame.setVisible(true);
-        desktopPane.add(libFrame);
+        InternalFrameLibrary = new JInternalFrame("Libraries", false, false, false, false);
+        PanelForLibrary = new JPanel();
+        PanelForLibrary.setLayout(new BoxLayout(PanelForLibrary, BoxLayout.Y_AXIS));
+        PanelForLibrary.setBackground(Color.WHITE);
+        PanelForLibrary.setBorder(new EmptyBorder(15, 20, 15, 20));
+        PanelForLibrary.add(LabelLibrary);
+        PanelForLibrary.add(Box.createRigidArea(new Dimension(0, 15)));
+        
+        PanelForLibrary.add(LabelLibrary_Header_FxHeader);
+        PanelForLibrary.add(LabelLibraryFxUI);
+        PanelForLibrary.add(LabelLibraryFxData);
+        PanelForLibrary.add(LabelLibraryFxGraphic);
+        PanelForLibrary.add(LabelLibraryFxMedia);
+        PanelForLibrary.add(Box.createRigidArea(new Dimension(0, 10)));
+        PanelForLibrary.add(LabelLibrary_Header_SwingHeader);
+        PanelForLibrary.add(LabelLibrarySwingDesc);
+        PanelForLibrary.add(Box.createRigidArea(new Dimension(0, 10)));
+        PanelForLibrary.add(LabelLibrary_Header_StdHeader);
+        PanelForLibrary.add(LabelLibraryStdDesc);
+        
+        InternalFrameLibrary.add(PanelForLibrary);
+        InternalFrameLibrary.setBounds(500, 140, 450, 280);
+        InternalFrameLibrary.setVisible(true);
+        desktopPane.add(InternalFrameLibrary);
 
         //JInternalFrame Feature
-        JInternalFrame featFrame = new JInternalFrame("Features", false, false, false, false);
-        JPanel featInner = new JPanel();
-        featInner.setLayout(new BoxLayout(featInner, BoxLayout.Y_AXIS));
-        featInner.setBackground(PANEL_BG);
-        featInner.setBorder(new EmptyBorder(15, 20, 15, 20));
-        lblFeatures.setAlignmentX(Component.LEFT_ALIGNMENT);
-        featInner.add(lblFeatures);
-        featInner.add(Box.createRigidArea(new Dimension(0, 15)));
+        InternalFrameFeature = new JInternalFrame("Features", false, false, false, false);
+        PanelForFeature = new JPanel();
+        PanelForFeature.setLayout(new BoxLayout(PanelForFeature, BoxLayout.Y_AXIS));
+        PanelForFeature.setBackground(Color.WHITE);
+        PanelForFeature.setBorder(new EmptyBorder(15, 20, 15, 20));
+        PanelForFeature.add(LabelFeature);
+        PanelForFeature.add(Box.createRigidArea(new Dimension(0, 15)));
+        
+        PanelForFeature.add(LabelFeatureDesc);
+        PanelForFeature.add(Box.createRigidArea(new Dimension(0, 15)));
+        PanelForFeature.add(LabelFeatureHome);
+        PanelForFeature.add(LabelFeatureMySong);
+        PanelForFeature.add(LabelFeaturePlaylist);
+        PanelForFeature.add(LabelFeatureMix);
+        PanelForFeature.add(LabelFeatureOOP);
 
-        featInner.add(featDesc);
-        featInner.add(Box.createRigidArea(new Dimension(0, 15)));
-        featInner.add(featHome);
-        featInner.add(featMySong);
-        featInner.add(featPlaylist);
-        featInner.add(featMix);
-        featInner.add(featOOP);
-
-        featFrame.add(featInner);
-        featFrame.setBounds(500, 435, 450, 280);
-        featFrame.setVisible(true);
-        desktopPane.add(featFrame);
-
+        InternalFrameFeature.add(PanelForFeature);
+        InternalFrameFeature.setBounds(500, 435, 450, 280);
+        InternalFrameFeature.setVisible(true);
+        desktopPane.add(InternalFrameFeature);
+        
         //Thankyou
         thankYou.setHorizontalAlignment(SwingConstants.CENTER);
-        thankYou.setBounds(0, 720, 1000, 50);
+        thankYou.setBounds(0, 720, 1000, 50); 
         desktopPane.add(thankYou, JLayeredPane.DEFAULT_LAYER);
 
         winFrame.add(desktopPane, BorderLayout.CENTER);
     }
 
-    //Show UI
     public void show(double ownerX, double ownerY, double ownerW) {
         if (winFrame == null) {
             initFonts();
@@ -292,25 +306,7 @@ public class About {
             winFrame.requestFocus();
             return;
         }
-
-        int aboutX = (int) (ownerX + ownerW + 10);
-        int aboutY = (int) ownerY;
-
-        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        if (aboutX + winFrame.getWidth() > screen.width) {
-            aboutX = (int) (ownerX - winFrame.getWidth() - 10);
-        }
-
-        winFrame.setLocation(aboutX, aboutY);
-        winFrame.setVisible(true);
-    }
-
-    //create Label
-    private JLabel createLabel(String text, Font font, Color color) {
-        JLabel label = new JLabel(text);
-        label.setFont(font);
-        label.setForeground(color);
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return label;
+    winFrame.setLocationRelativeTo(null);
+    winFrame.setVisible(true);
     }
 }
