@@ -446,7 +446,7 @@ public class HomeWindow {
 
                     double height = Math.max(5, value * 2);
 
-                    bar.setScaleY(height / 20.0);
+                    bar.setScaleY(height / 20.0);   
                 }
 
             });

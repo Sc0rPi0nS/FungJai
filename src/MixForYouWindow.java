@@ -255,7 +255,7 @@ public class MixForYouWindow {
 
     //mix detail window
     private void openDetailWindow(Stage owner, Playlist mix, String[] palette,
-            Runnable refreshCallback) {
+        Runnable refreshCallback) {
         Stage win = new Stage();
         win.initModality(Modality.WINDOW_MODAL);//block only parent window
         win.initOwner(owner);

@@ -1,4 +1,3 @@
-
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -7,6 +6,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
+import java.io.*;
+import java.util.*;
 import java.util.UUID;
 
 public class MySongWindow {
@@ -147,10 +148,10 @@ public class MySongWindow {
         }
 
         // ===== Buttons =====
-        Button addBtn = new Button("Add");
-        addBtn.setOnAction(e -> onAddSong());
+        Button addFromYoutubeBtn = new Button("Add Song");
+        addFromYoutubeBtn.setOnAction(e -> onAddSongFromYoutube());
 
-        HBox buttons = new HBox(10, addBtn);
+        HBox buttons = new HBox(10, addFromYoutubeBtn);
         VBox root = new VBox(10, table, buttons);
 
         stage.setScene(new Scene(root, 600, 400));
@@ -171,17 +172,7 @@ public class MySongWindow {
         TextField artistField = new TextField();
         artistField.setPromptText("Artist");
 
-        titleField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) {
-                titleField.setText(newVal.replace(" ", "-"));
-            }
-        });
 
-        artistField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.contains(" ")) {
-                artistField.setText(newVal.replace(" ", "-"));
-            }
-        });
 
         Label fileLabel = new Label("No file selected");
         Button chooseBtn = new Button("Choose File");
@@ -254,6 +245,217 @@ public class MySongWindow {
         popup.setScene(new Scene(layout, 300, 250));
         popup.show();
     }
+
+    // ===============================
+    // Add song from YouTube link (requires yt-dlp + ffmpeg installed and on PATH)
+    // ===============================
+    private void onAddSongFromYoutube() {
+        Stage popup = new Stage();
+        popup.initOwner(stage);
+        popup.setTitle("Add Song from YouTube");
+
+        TextField urlField = new TextField();
+        urlField.setPromptText("https://www.youtube.com/watch?v=...");
+
+        TextField titleField = new TextField();
+        titleField.setPromptText("Title");
+
+        TextField artistField = new TextField();
+        artistField.setPromptText("Artist");
+        
+                titleField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.contains(" ")) {
+                titleField.setText(newVal.replace(" ", "-"));
+            }
+        });
+
+        artistField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.contains(" ")) {
+                artistField.setText(newVal.replace(" ", "-"));
+            }
+        });
+
+        Label statusLabel = new Label("");
+        statusLabel.setWrapText(true);
+
+        ProgressIndicator progress = new ProgressIndicator();
+        progress.setVisible(false);
+        progress.setMaxSize(24, 24);
+
+        Button downloadBtn = new Button("Download && Add");
+
+        downloadBtn.setOnAction(e -> {
+            String url = urlField.getText() == null ? "" : urlField.getText().trim();
+            if (url.isEmpty()) {
+                statusLabel.setText("กรุณาใส่ลิงก์ YouTube");
+                return;
+            }
+
+            downloadBtn.setDisable(true);
+            progress.setVisible(true);
+            statusLabel.setText("กำลังดาวน์โหลดและแปลงเป็น mp3...");
+
+            Thread worker = new Thread(() -> runYtDlpDownload(
+                    url, titleField.getText(), artistField.getText(),
+                    popup, downloadBtn, progress, statusLabel));
+            worker.setDaemon(true);
+            worker.start();
+        });
+
+        VBox layout = new VBox(10,
+                new Label("YouTube URL"), urlField,
+                new Label("Title"), titleField,
+                new Label("Artist"), artistField,
+                new HBox(10, downloadBtn, progress),
+                statusLabel
+        );
+        layout.setStyle("-fx-padding: 20");
+        popup.setScene(new Scene(layout, 380, 320));
+        popup.show();
+    }
+
+  private void runYtDlpDownload(String url, String userTitle, String userArtist,
+                              Stage popup, Button downloadBtn,
+                              ProgressIndicator progress, Label statusLabel) {
+
+    try {
+
+        // โฟลเดอร์ที่ต้องการเก็บเพลง
+        File outDir = new File("C:\\NIne\\FungJai\\src\\song");
+
+        String outputTemplate = outDir.getAbsolutePath()
+                + File.separator
+                + "%(title)s.%(ext)s";
+
+        ProcessBuilder pb = new ProcessBuilder(
+                "yt-dlp",
+                "-x",
+                "--audio-format", "mp3",
+                "-o", outputTemplate,
+                url
+        );
+
+        pb.redirectErrorStream(true);
+
+        Process process = pb.start();
+
+        StringBuilder log = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream()))) {
+
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+                log.append(line).append("\n");
+            }
+        }
+
+        int exitCode = process.waitFor();
+
+        File[] mp3Files = outDir.listFiles((dir, name) ->
+                name.toLowerCase().endsWith(".mp3"));
+
+        if (exitCode == 0 && mp3Files != null && mp3Files.length > 0) {
+
+            Arrays.sort(mp3Files,
+                    Comparator.comparingLong(File::lastModified));
+
+            File mp3File = mp3Files[mp3Files.length - 1];
+
+            String guessedTitle =
+                    mp3File.getName().replaceFirst("\\.mp3$", "");
+
+            javafx.application.Platform.runLater(() -> {
+
+                String finalTitle =
+                        (userTitle == null || userTitle.isBlank())
+                                ? guessedTitle
+                                : userTitle;
+
+                String finalArtist =
+                        (userArtist == null || userArtist.isBlank())
+                                ? "Unknown"
+                                : userArtist;
+
+                Song song = new Song(
+                        finalTitle,
+                        finalArtist,
+                        mp3File.getAbsolutePath(),
+                        0
+                );
+
+                libraryService.addSong(song);
+
+                SongRow row = new SongRow(
+                        song.getId(),
+                        finalTitle,
+                        finalArtist,
+                        mp3File.getAbsolutePath(),
+                        0,
+                        song.getDateAddedString()
+                );
+
+                tableData.add(row);
+
+                javafx.scene.media.MediaPlayer player = song.getMediaPlayer();
+
+                player.setOnReady(() -> {
+
+                    javafx.util.Duration d =
+                            player.getMedia().getDuration();
+
+                    if (d != null &&
+                            !d.isUnknown() &&
+                            !d.isIndefinite()) {
+
+                        long secs = (long) d.toSeconds();
+
+                        song.setDuration(secs);
+
+                        libraryService.forceSave();
+
+                        javafx.application.Platform.runLater(() -> {
+                            row.timeProperty().set(
+                                    String.format("%d:%02d",
+                                            secs / 60,
+                                            secs % 60));
+                        });
+                    }
+
+                });
+
+                statusLabel.setText("เพิ่มเพลงสำเร็จ!");
+                popup.close();
+
+            });
+
+        } else {
+
+            System.out.println(log);
+
+            javafx.application.Platform.runLater(() -> {
+                statusLabel.setText("ดาวน์โหลดล้มเหลว");
+                downloadBtn.setDisable(false);
+                progress.setVisible(false);
+            });
+
+        }
+
+    } catch (Exception ex) {
+
+        ex.printStackTrace();
+
+        javafx.application.Platform.runLater(() -> {
+            statusLabel.setText("เกิดข้อผิดพลาด : " + ex.getMessage());
+            downloadBtn.setDisable(false);
+            progress.setVisible(false);
+        });
+
+    }
+
+}
 
     private void onEditSong(SongRow row) {
 
